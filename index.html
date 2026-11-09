@@ -208,7 +208,7 @@ code{background:var(--pink-xl);color:var(--pink-d);padding:2px 6px;border-radius
 
 <script>
 "use strict";
-const DEPTS=['Овощи и зелень','Фрукты и ягоды','Рыба и морепродукты','Мясо и птица','Молочное и яйца','Крупы, бобовые, макароны','Хлеб','Орехи, семена, масла','Консервы'];
+const DEPTS=['Овощи и зелень','Фрукты и ягоды','Рыба и морепродукты','Мясо и птица','Молочное и яйца','Крупы, бобовые, макароны','Хлеб','Орехи, масла и сладкое','Консервы и заморозка'];
 const P0=[
  ['chicken','Куриная грудка (филе)',3,113,23.6,1.9,0,0.5,0],
  ['thigh','Куриное бедро без кожи',3,121,19.7,4.1,0,1.0,0],
@@ -230,7 +230,7 @@ const P0=[
  ['beans','Фасоль белая консервированная',8,100,7,0.5,17,0.1,6,{can:240}],
  ['bulgur','Булгур (сухой)',5,342,12.3,1.3,57.6,0.2,12],
  ['buckwheat','Гречка (сухая)',5,313,12.6,3.3,57.1,0.7,10],
- ['rice','Рис бурый (сухой)',5,342,7.5,2.7,72,0.5,3.5],
+ ['rice','Рис бурый или смесь с диким (сухой)',5,342,7.5,2.7,72,0.5,3.5],
  ['pasta','Паста цельнозерновая (сухая)',5,348,13,2.5,64,0.4,9],
  ['quinoa','Киноа (сухая)',5,368,14,6,57,0.7,7],
  ['oats','Овсяные хлопья',5,352,12.3,6.2,61.8,1.1,10],
@@ -265,14 +265,55 @@ const P0=[
  ['almonds','Миндаль',7,579,21,50,10,3.8,12.5],
  ['flax','Семена льна (молотые)',7,534,18,42,2,3.7,27],
  ['tahini','Тахини (кунжутная паста)',7,595,17,54,10,7.5,9],
+ ['veg','Овощи по сезону (огурец, томат, перец, кабачок)',0,22,1,0.2,4,0,1.4],
+ ['potato','Картофель',0,77,2,0.1,16.3,0,2.2],
+ ['scallops','Морской гребешок',2,69,12.1,0.5,3.2,0.1,0],
+ ['stewTurkey','Индейка томлёная (готовая)',3,140,19,7,0,2,0],
+ ['cottage5','Творог 5%',4,121,17.2,5,1.8,3,0],
+ ['natYogurt','Йогурт натуральный',4,60,4,2.5,4.5,1.6,0],
+ ['parmesan','Пармезан',4,392,35,26,3,16,0],
+ ['canMackerel','Скумбрия консервированная (натуральная)',8,160,17,10,0,2.5,0,{can:250}],
+ ['beansTomato','Фасоль в томатном соусе',8,80,5,0.4,13,0.1,4,{can:400}],
+ ['passata','Пассата (томатное пюре)',8,35,1.5,0.2,6,0,1.5],
+ ['sweetFries','Батат фри (заморож.)',8,170,2,7,24,0.6,3],
+ ['chia','Семена чиа',7,486,17,31,8,3.3,34],
+ ['honey','Мёд',7,304,0.3,0,82,0,0],
+ ['choco','Тёмный шоколад 70%',7,600,8,43,34,25,11],
 ];
 const BASE_PRODUCTS=P0.map(a=>({id:a[0],name:a[1],dept:a[2],kcal:a[3],p:a[4],f:a[5],c:a[6],sat:a[7],fib:a[8],...(a[9]||{})}));
 
 
 /* ================== РЕЦЕПТЫ (одна порция) ==================
-   t: b — завтрак, m — основное блюдо (готовится заранее), q — быстрый ужин после тренировки, s — перекус
-   e — картинка, tm — время, мин, pre — заготовка, которую делают во время основной готовки */
-const RECIPES=[
+   t: b — завтрак, m — основное блюдо (готовится впрок), q — быстрый ужин после тренировки, s — перекус
+   e — картинка, tm — время, мин; pre — заготовка во время основной готовки; pw — перекус до тренировки
+   H_ — рецепты из сборника «Средиземноморское меню»; X_ — дополнительные блюда для разнообразия */
+const H_RECIPES=[
+ {id:'h_b1',t:'b',e:'🫐',tm:5,n:'Йогуртовая миска с овсянкой, ягодами и орехами',i:{yogurt:200,oats:40,berries:100,walnuts:15},h:'Собрать перед едой или вечером накануне.'},
+ {id:'h_b2',t:'b',e:'🍌',tm:5,n:'Йогурт с овсянкой, бананом, чиа и орехами',i:{yogurt:200,oats:40,banana:100,walnuts:10,chia:10},h:'Собрать перед едой или вечером накануне.'},
+ {id:'h_b3',t:'b',e:'🍓',tm:5,n:'Творожная миска с ягодами, мёдом и орехами',i:{cottage5:180,berries:100,honey:10,walnuts:15},h:'Выложить творог в миску, добавить ягоды, мёд и рубленые орехи.'},
+ {id:'h_b4',t:'b',e:'🥑',tm:10,n:'Яйца с авокадо и томатом на цельнозерновом хлебе',i:{egg:110,bread:70,avocado:50,tomato:100},h:'Яйца приготовить на сковороде или вкрутую; хлеб подать с авокадо и томатом.'},
+ {id:'h_b5',t:'b',e:'🍳',tm:10,n:'Омлет с фетой и шпинатом, цельнозерновой хлеб',i:{egg:110,feta:30,spinach:50,bread:60},h:'Слегка припустить шпинат, добавить взбитые яйца и фету, готовить под крышкой.'},
+ {id:'h_b6',t:'b',e:'🥣',tm:3,n:'Йогурт с бананом и чиа',i:{yogurt:200,banana:100,chia:10},h:'Нарезать банан, смешать с йогуртом, посыпать чиа.'},
+ {id:'h_m1',t:'m',e:'🍗',tm:40,n:'Курица с булгуром и овощами',i:{chicken:150,bulgur:60,veg:200,oil:10},h:'Булгур отварить. Курицу нарезать, приправить паприкой и орегано, обжарить или запечь до готовности. Овощи запечь или быстро обжарить. Масло распределить между порциями.'},
+ {id:'h_m2',t:'m',e:'🥗',tm:15,n:'Греческий салат с нутом и фетой',i:{chickpeas:120,feta:50,veg:250,oil:10,lemon:10},h:'Овощи нарезать, добавить нут и раскрошенную фету. Заправить маслом, лимонным соком и орегано непосредственно перед едой — заправку хранить отдельно.'},
+ {id:'h_m3',t:'m',e:'🐟',tm:40,n:'Лосось с картофелем и брокколи',i:{salmon:150,potato:200,broccoli:200,oil:10,lemon:10},h:'Картофель нарезать и запечь до мягкости. Добавить брокколи и лосось, сбрызнуть маслом, приправить и довести до готовности. Подать с лимоном.'},
+ {id:'h_m4',t:'m',e:'🥗',tm:10,n:'Салат с тунцом и белой фасолью',i:{tuna:100,beans:120,veg:250,bread:40,oil:10,lemon:10},h:'Смешать тунец, промытую фасоль и нарезанные овощи. Заправить маслом и лимоном перед едой. Хлеб подать отдельно.'},
+ {id:'h_m5',t:'m',e:'🍝',tm:25,n:'Пенне с креветками и томатами',i:{pasta:75,shrimp:250,passata:110,spinach:50,garlic:5,oil:5,parmesan:10},h:'Отварить пасту до al dente. Прогреть масло с чесноком, добавить пассату и шпинат, креветки довести до готовности в соусе, не передерживая. Смешать с пастой, посыпать пармезаном. Хранить не дольше 1–2 дней.'},
+ {id:'h_m6',t:'m',e:'🍖',tm:25,n:'Индейка с булгуром и овощами',i:{stewTurkey:150,bulgur:60,veg:200,oil:7},h:'Булгур отварить. Овощи запечь или потушить. Индейку прогреть с овощами, паприкой и перцем. Если индейка уже жирная или солёная — масла меньше.'},
+ {id:'h_m7',t:'m',e:'🫘',tm:15,n:'Фасолевое рагу с томатами и фетой',i:{beansTomato:200,veg:200,feta:40,bread:60},h:'Овощи нарезать и потушить с небольшим количеством воды. Добавить фасоль с соусом, прогреть 5–7 мин. Сверху фета, хлеб отдельно.'},
+ {id:'h_m8',t:'m',e:'🐟',tm:25,n:'Скумбрия с рисом и овощами',i:{canMackerel:120,rice:65,veg:200,lemon:10},h:'Рис отварить. Скумбрию слить от жидкости и разобрать на кусочки. Подать с рисом, свежими овощами и лимоном.'},
+ {id:'h_q1',t:'q',e:'🍠',tm:20,n:'Батат фри с тунцом и йогуртовым соусом',i:{sweetFries:150,tuna:100,veg:200,natYogurt:50,oil:5},h:'Батат запечь по инструкции на упаковке. Йогурт смешать с чесноком, лимоном и укропом. Подать с тунцом и свежими овощами.'},
+ {id:'h_q2',t:'q',e:'🍤',tm:20,n:'Креветки с бататом фри и салатом',i:{shrimp:250,sweetFries:150,veg:200,natYogurt:50},h:'Батат запечь. Креветки быстро обжарить или отварить. Йогурт смешать с чесноком и лимоном, подать с салатом. Креветки разморозить в холодильнике накануне.'},
+ {id:'h_q3',t:'q',e:'🐚',tm:10,n:'Гребешки с рисом, шпинатом и томатами',i:{scallops:250,rice:60,spinach:100,tomato:150,oil:10,lemon:10},pre:'отварить рис',h:'Гребешки обсушить и быстро обжарить на хорошо разогретой сковороде, не пересушивая. Шпинат и томаты слегка припустить, подать с рисом и лимоном.'},
+ {id:'h_s1',t:'s',e:'🍏',tm:1,n:'Яблоко и миндаль',i:{apple:150,almonds:15},h:''},
+ {id:'h_s2',t:'s',e:'🍐',tm:1,n:'Натуральный йогурт и груша',i:{natYogurt:150,pear:150},h:''},
+ {id:'h_s3',t:'s',e:'🍌',tm:1,n:'Банан и миндаль',i:{banana:120,almonds:10},pw:true,h:''},
+ {id:'h_s4',t:'s',e:'🍫',tm:1,n:'Апельсин и тёмный шоколад',i:{orange:150,choco:10},h:''},
+ {id:'h_s5',t:'s',e:'🍐',tm:1,n:'Груша и тёмный шоколад',i:{pear:150,choco:20},h:''},
+ {id:'h_s6',t:'s',e:'🏋️',tm:1,n:'Банан и греческий йогурт',i:{banana:100,yogurt:150},pw:true,h:'За 60–90 минут до тренировки.'},
+ {id:'h_s7',t:'s',e:'🍊',tm:1,n:'Апельсин, йогурт и орехи',i:{orange:150,yogurt:100,walnuts:10},h:''},
+];
+const X_RECIPES=[
  {id:'b1',t:'b',e:'🥣',tm:10,n:'Овсянка на молоке с ягодами и грецкими орехами',i:{oats:50,milk:200,berries:100,walnuts:10,flax:5},h:'Сварить овсянку на молоке 5–7 мин, добавить ягоды, орехи и молотый лён.'},
  {id:'b2',t:'b',e:'🫐',tm:5,n:'Греческий йогурт с ягодами, овсянкой и миндалём',i:{yogurt:200,berries:100,oats:25,almonds:15},h:'Смешать в контейнере с вечера — к утру хлопья размякнут. Удобно взять с собой.'},
  {id:'b3',t:'b',e:'🍳',tm:10,n:'Омлет со шпинатом и помидорами, цельнозерновой хлеб',i:{egg:110,spinach:60,tomato:100,oil:5,bread:40},h:'Прогреть шпинат на оливковом масле 1–2 мин, залить взбитыми яйцами, готовить под крышкой 5 мин. Помидоры — нарезать.'},
@@ -323,6 +364,7 @@ const RECIPES=[
  {id:'s7',t:'s',e:'🥪',tm:3,n:'Цельнозерновой хлеб с тунцом и огурцом',i:{bread:40,tuna:60,cucumber:60},h:''},
  {id:'s8',t:'s',e:'🍌',tm:2,n:'Йогурт с бананом',i:{yogurt:120,banana:80},h:''},
 ];
+const RECIPES=H_RECIPES.concat(X_RECIPES.map(r=>Object.assign(r,{x:true})));
 const RID=Object.fromEntries(RECIPES.map(r=>[r.id,r]));
 
 /* ================== КОНСТАНТЫ И УТИЛИТЫ ================== */
@@ -360,8 +402,8 @@ function listDays(arr){return arr.map(x=>DAY_SHORT[x].toLowerCase()).join(', ')}
 function defaultState(){return{
   v:1,updatedAt:0,
   settings:{kcal:1700,protMin:110,protMax:120,fatPct:30,satPct:10,fiberMin:25,cookCount:3,trainDays:[0,2],
-    meals:{b:true,l:true,d:true,s:true},excluded:['мюсли','оливки','каперсы','хумус','суп']},
-  home:{},custom:[],plan:null,bought:{},
+    meals:{b:true,l:true,d:true,s:true},extra:false,excluded:['мюсли','оливки','каперсы','хумус','суп']},
+  home:{},custom:[],plan:null,bought:{},shopExtra:[],
   supps:[],suppWeek:{start:iso(mondayOf(new Date())),checks:{}},suppHistory:[]
 }}
 function migrate(s){
@@ -371,7 +413,7 @@ function migrate(s){
   if(!Array.isArray(s.settings.trainDays))s.settings.trainDays=[];
   if(!Array.isArray(s.settings.excluded))s.settings.excluded=[];
   for(const k of ['home','bought'])if(!s[k]||typeof s[k]!=='object')s[k]={};
-  for(const k of ['custom','supps','suppHistory'])if(!Array.isArray(s[k]))s[k]=[];
+  for(const k of ['custom','supps','suppHistory','shopExtra'])if(!Array.isArray(s[k]))s[k]=[];
   if(!s.suppWeek||!s.suppWeek.start)s.suppWeek=d.suppWeek;
   if(!s.suppWeek.checks)s.suppWeek.checks={};
   s.v=1;return s;
@@ -395,21 +437,32 @@ function targets(){const s=state.settings;const fat=s.kcal*s.fatPct/100/9;const 
   return{kcal:s.kcal,pMin:s.protMin,pMax:s.protMax,fat,carb:Math.max(0,(s.kcal-pm*4-fat*9)/4),satPct:s.satPct,fib:s.fiberMin}}
 
 /* ================== ГОТОВКИ С УЧЁТОМ ТРЕНИРОВОК ==================
-   Готовлю вечером на следующий день. Вечер тренировки — без готовки,
-   значит, новая готовка не может начинаться на следующий день после тренировки. */
-function cookStarts(train){return [0,1,2,3,4].filter(i=>i===0||!train.includes(i-1))}
-function sessionsFor(k,train){
-  const allowed=cookStarts(train);k=clamp(Math.round(k)||1,1,allowed.length);
-  const rest=allowed.slice(1);let best=null,bk=null;
-  for(let mask=0;mask<(1<<rest.length);mask++){
-    const starts=[0,...rest.filter((_,j)=>mask>>j&1)];if(starts.length!==k)continue;
-    const lens=starts.map((s,j)=>(starts[j+1]??5)-s);
-    const key=[Math.max(...lens),lens.reduce((a,l)=>a+l*l,0)];
-    if(!bk||key[0]<bk[0]||(key[0]===bk[0]&&key[1]<bk[1])){bk=key;best=starts}
-  }
-  return best.map((s,j)=>{const e=best[j+1]??5;return [0,1,2,3,4].slice(s,e)});
+   Готовлю вечером на следующий день. Обычно вечер тренировки — без готовки.
+   Если тренировки два (или больше) дня подряд, в один из этих вечеров можно доготовить. */
+function cookOptions(train){
+  const free=[],runs=[];let cur=[];
+  for(let s=1;s<=4;s++){const e=s-1;
+    if(!train.includes(e)){free.push(s);if(cur.length>=2)runs.push(cur);cur=[]}
+    else cur.push(s)}
+  if(cur.length>=2)runs.push(cur);
+  return{free,runs};
 }
-function sessionWhen(s){const f=s.days[0];return f===0?'в воскресенье вечером':`в ${DAY_ACC[f-1]} вечером`}
+function maxCooks(train){const o=cookOptions(train);return 1+o.free.length+o.runs.length}
+function sessionsFor(k,train){
+  const o=cookOptions(train),cand=[...o.free,...o.runs.flat()].sort((a,b)=>a-b);
+  k=clamp(Math.round(k)||1,1,maxCooks(train));
+  let best=[0],bk=null;
+  for(let mask=0;mask<(1<<cand.length);mask++){
+    const pk=cand.filter((_,j)=>mask>>j&1);if(pk.length!==k-1)continue;
+    if(o.runs.some(r=>r.filter(x=>pk.includes(x)).length>1))continue;
+    const tu=pk.filter(x=>!o.free.includes(x)).length,starts=[0,...pk];
+    const lens=starts.map((st,j)=>(starts[j+1]??5)-st);
+    const key=[Math.max(...lens),tu,lens.reduce((a,l)=>a+l*l,0)];
+    if(!bk||key[0]<bk[0]||(key[0]===bk[0]&&(key[1]<bk[1]||(key[1]===bk[1]&&key[2]<bk[2])))){bk=key;best=starts}
+  }
+  return best.map((st,j)=>[0,1,2,3,4].slice(st,best[j+1]??5));
+}
+function sessionWhen(s,train){const f=s.days[0];if(f===0)return'в воскресенье вечером';return `в ${DAY_ACC[f-1]} вечером`+((train||[]).includes(f-1)?' (после тренировки)':'')}
 function sessionWhenShort(s){const f=s.days[0];return f===0?'в вс':`в ${DAY_SHORT[f-1].toLowerCase()}`}
 
 /* ================== СОСТАВЛЕНИЕ МЕНЮ ================== */
@@ -419,19 +472,23 @@ function isExcluded(r){
   const names=[r.n.toLowerCase(),...Object.keys(r.i).map(id=>prod(id).name.toLowerCase())];
   return ex.some(w=>names.some(n=>n.includes(w)));
 }
-function pools(){const ok=RECIPES.filter(r=>!isExcluded(r));const by=t=>ok.filter(r=>r.t===t&&!r.fresh).map(r=>r.id);return{b:by('b'),m:by('m'),q:by('q'),s:by('s')}}
+function pools(){const ok=RECIPES.filter(r=>!isExcluded(r)&&!r.fresh&&(!r.x||state.settings.extra));
+  const by=t=>ok.filter(r=>r.t===t).map(r=>r.id);
+  return{b:by('b'),m:by('m'),q:by('q'),s:by('s'),pw:ok.filter(r=>r.t==='s'&&r.pw).map(r=>r.id)}}
+function snackPool(P,isT){return isT&&P.pw.length?P.pw:P.s}
 function scoreTotals(t,T,train,dinnerP){
   let sc=Math.abs(t.kcal-T.kcal)/T.kcal*300;
   if(t.p<T.pMin)sc+=(T.pMin-t.p)*2.5;else if(t.p>T.pMax+5)sc+=(t.p-T.pMax-5)*1.2;
   sc+=Math.abs(t.f-T.fat)*0.8;
   const satP=t.sat*9/Math.max(1,t.kcal)*100;if(satP>T.satPct)sc+=(satP-T.satPct)*6;
   if(t.fib<T.fib)sc+=(T.fib-t.fib)*1.2;
-  if(train&&dinnerP!=null&&dinnerP<35)sc+=(35-dinnerP);
+  if(train&&dinnerP!=null&&dinnerP<30)sc+=(30-dinnerP);
   return sc;
 }
 function homeHits(rid){let n=0;for(const p in RID[rid].i)if(state.home[p]&&state.home[p].has)n++;return n}
+/* в день тренировки ужин — либо быстрый (q), либо разогреть блюдо из готовки */
 function dayRids(c,i,sessions,train){const si=sessions.findIndex(s=>s.includes(i));
-  return{b:c.days[i].b,l:c.sess[si].l,d:train.includes(i)?c.days[i].q:c.sess[si].d,s:c.days[i].s}}
+  return{b:c.days[i].b,l:c.sess[si].l,d:(train.includes(i)&&c.days[i].q)?c.days[i].q:c.sess[si].d,s:c.days[i].s}}
 function scoreDayRids(rids,i,T,train){
   const base=zeroT();const keys=Object.keys(rids).filter(k=>rids[k]);
   for(const k of keys)addT(base,RM[rids[k]]);
@@ -446,11 +503,12 @@ function scoreCand(c,sessions,T,train){
 }
 function randCand(P,sessions,en,train){
   const mains=shuffle(P.m.slice());let mi=0;const next=()=>mains[(mi++)%mains.length];
-  const sess=sessions.map(sd=>({l:en.l?next():null,d:en.d&&sd.some(x=>!train.includes(x))?next():null}));
+  const sess=sessions.map(()=>({l:en.l?next():null,d:en.d?next():null}));
   const days=[];let lastQ=null;
-  for(let i=0;i<5;i++){const pv=days[i-1]||{};let q=null;
-    if(en.d&&train.includes(i)&&P.q.length){q=pickNot(P.q,lastQ);lastQ=q}
-    days.push({b:en.b&&P.b.length?pickNot(P.b,pv.b):null,s:en.s&&P.s.length?pickNot(P.s,pv.s):null,q})}
+  for(let i=0;i<5;i++){const pv=days[i-1]||{},isT=train.includes(i);let q=null;
+    if(en.d&&isT&&P.q.length&&Math.random()<0.6){q=pickNot(P.q,lastQ);lastQ=q}
+    const sp=snackPool(P,isT);
+    days.push({b:en.b&&P.b.length?pickNot(P.b,pv.b):null,s:en.s&&sp.length?pickNot(sp,pv.s):null,q})}
   return{sess,days};
 }
 function scaleItems(map,f){return Object.entries(map).map(([p,g])=>({p,g:roundG(g*f)}))}
@@ -464,15 +522,15 @@ function generatePlan(){
   const s=state.settings,T=targets(),P=pools(),en=s.meals,train=s.trainDays.slice().sort();
   if(!(en.b||en.l||en.d||en.s)){toast('Включите хотя бы один приём пищи в настройках');return false}
   if((en.l||en.d)&&P.m.length<2){toast('Слишком много исключений — не хватает основных блюд');return false}
-  if(en.d&&train.length&&!P.q.length){toast('Нет подходящих быстрых ужинов — проверьте исключения');return false}
   if(en.b&&!P.b.length){toast('Нет подходящих завтраков — проверьте исключения');return false}
   if(en.s&&!P.s.length){toast('Нет подходящих перекусов — проверьте исключения');return false}
   const sessions=sessionsFor(s.cookCount,train);
   let best=null,bs=Infinity;
   for(let it=0;it<2500;it++){const c=randCand(P,sessions,en,train);const sc=scoreCand(c,sessions,T,train);if(sc<bs){bs=sc;best=c}}
-  for(let i=0;i<5;i++)for(const k of ['b','s','q']){if(!best.days[i][k])continue;const pool=P[k];
-    for(const r of pool){if(k!=='q'&&((i>0&&best.days[i-1][k]===r)||(i<4&&best.days[i+1][k]===r)))continue;
-      const old=best.days[i][k];best.days[i][k]=r;const sc=scoreCand(best,sessions,T,train);if(sc<bs-0.5)bs=sc;else best.days[i][k]=old}}
+  const opts=(i,k)=>k==='q'?(en.d&&train.includes(i)?[null,...P.q]:[]):(k==='s'?(best.days[i].s?snackPool(P,train.includes(i)):[]):(best.days[i].b?P.b:[]));
+  for(let i=0;i<5;i++)for(const k of ['b','s','q']){
+    for(const r of opts(i,k)){if(k!=='q'&&((i>0&&best.days[i-1][k]===r)||(i<4&&best.days[i+1][k]===r)))continue;
+      const old=best.days[i][k];if(old===r)continue;best.days[i][k]=r;const sc=scoreCand(best,sessions,T,train);if(sc<bs-0.5)bs=sc;else best.days[i][k]=old}}
   const t=new Date();const ws=mondayOf(t);if((t.getDay()+6)%7>=5)ws.setDate(ws.getDate()+7);
   state.plan={weekStart:iso(ws),createdAt:Date.now(),trainDays:train,
     sessions:sessions.map((d,si)=>({days:d,l:best.sess[si].l,d:best.sess[si].d})),
@@ -487,14 +545,16 @@ function swapMeal(i,k){
     const f=clamp((T.kcal-other.kcal)/Math.max(1,RM[rid].kcal),0.5,1.8);const t=addT(addT(zeroT(),other),RM[rid],f);
     const dinP=k==='d'?RM[rid].p*f:(day.meals.d?macros(day.meals.d.items).p:null);
     return{sc:scoreTotals(t,T,train.includes(di),dinP)-homeHits(rid)*1.5,f}};
-  const perDay=k==='b'||k==='s'||(k==='d'&&train.includes(i));
+  const ses=p.sessions.find(s=>s.days.includes(i)),isT=train.includes(i),cur=p.days[i].meals[k].rid;
+  const perDay=k==='b'||k==='s'||(k==='d'&&isT);
   if(perDay){
-    const pool=k==='d'?P.q:P[k];const cur=p.days[i].meals[k].rid;const cands=pool.filter(r=>r!==cur);if(!cands.length){toast('Нет других вариантов');return}
+    let pool=k==='d'?P.q.concat(ses&&ses.d?[ses.d]:[]):(k==='s'?snackPool(P,isT):P[k]);
+    if(k==='s'&&pool.length<2)pool=P.s;
+    const cands=[...new Set(pool)].filter(r=>r!==cur);if(!cands.length){toast('Нет других вариантов');return}
     const scored=cands.map(r=>({r,...scoreWith(p.days[i],i,r)})).sort((a,b)=>a.sc-b.sc);
     const ch=pick(scored.slice(0,3));p.days[i].meals[k]={rid:ch.r,items:scaleItems(RID[ch.r].i,ch.f)};
   }else{
-    const ses=p.sessions.find(s=>s.days.includes(i));
-    const days=ses.days.filter(di=>k==='l'||!train.includes(di));
+    const days=ses.days.filter(di=>p.days[di].meals[k]&&p.days[di].meals[k].rid===ses[k]);
     const used=new Set();p.sessions.forEach(s=>{s.l&&used.add(s.l);s.d&&used.add(s.d)});
     let cands=P.m.filter(r=>!used.has(r));if(!cands.length)cands=P.m.filter(r=>r!==ses[k]);if(!cands.length){toast('Нет других вариантов');return}
     const scored=cands.map(r=>({r,sc:days.reduce((a,di)=>a+scoreWith(p.days[di],di,r).sc,0)})).sort((a,b)=>a.sc-b.sc);
@@ -523,17 +583,20 @@ function buildOptions(){const by={};allProducts().forEach(p=>(by[p.dept]=by[p.de
 let activeDay=null;
 function dayTotals(d){const t=zeroT();for(const k in d.meals)addT(t,macros(d.meals[k].items));return t}
 function mealCard(i,k,label,m,ses,train){
-  const r=RID[m.rid],t=macros(m.items),quick=k==='d'&&train;
-  let sub='';
-  if(k==='l'||(k==='d'&&!train))sub=`из готовки ${sessionWhenShort(ses)}`;
+  const r=RID[m.rid],t=macros(m.items),quick=k==='d'&&train&&r&&r.t==='q',reheat=k==='d'&&train&&!quick;
+  let sub='',lab=label;
+  if(k==='l'||k==='d')sub=`из готовки ${sessionWhenShort(ses)}`;
   if(quick)sub='быстрый ужин';
+  if(reheat)sub=`разогреть · из готовки ${sessionWhenShort(ses)}`;
+  if(k==='d'&&train)lab+=' · после тренировки';
+  if(k==='s'&&train&&r&&r.pw){lab='Перекус до тренировки';sub='за 60–90 мин до зала'}
   return `<div class="meal">
    <div class="mtop"><div class="emoji">${r?r.e:'🍽️'}</div>
-    <div class="mmain"><div class="mlabel">${label}${quick?' · после тренировки':''}</div><div class="mname">${esc(r?r.n:'Блюдо')}</div>
-     <div class="meta">${r&&r.tm?`⏱ ${quick&&r.pre?'разогреть — ':''}${r.tm} мин`:''}${sub?` · ${sub}`:''}</div></div>
+    <div class="mmain"><div class="mlabel">${lab}</div><div class="mname">${esc(r?r.n:'Блюдо')}</div>
+     <div class="meta">${[r&&r.tm>2?`⏱ ${r.tm} мин`:'',sub].filter(Boolean).join(' · ')}</div></div>
     <button class="sq" data-act="swap" data-day="${i}" data-meal="${k}" title="Другой вариант" aria-label="Другой вариант">${ICON_SWAP}</button></div>
    <div class="mbottom"><div class="kc">${r0(t.kcal)}<small> ккал</small></div><div class="macro">Б <b>${r0(t.p)}</b> · Ж <b>${r0(t.f)}</b> · У <b>${r0(t.c)}</b></div></div>
-   ${quick&&r&&r.pre?`<div class="tip">💡 Заготовка: ${esc(r.pre)} — во время готовки ${sessionWhen(ses)}.</div>`:''}
+   ${quick&&r&&r.pre?`<div class="tip">💡 Заготовка: ${esc(r.pre)} — во время готовки ${sessionWhen(ses,planTrain())}.</div>`:''}
    <table class="items">${m.items.map((it,j)=>{const pr=prod(it.p);return`<tr><td>${esc(pr.name)}</td><td style="white-space:nowrap"><input type="number" inputmode="numeric" min="0" step="1" value="${it.g}" data-ch="grams" data-day="${i}" data-meal="${k}" data-idx="${j}"> г</td><td class="num">${r0(pr.kcal*it.g/100)} ккал</td><td><button class="x" data-act="rmitem" data-day="${i}" data-meal="${k}" data-idx="${j}" title="Убрать" aria-label="Убрать">×</button></td></tr>`}).join('')}</table>
    ${r&&r.h?`<details><summary>Как готовить</summary><p>${esc(r.h)}</p></details>`:''}
    <details class="add"><summary>Добавить продукт</summary><div class="addrow"><select>${PROD_OPTIONS}</select><input type="number" inputmode="numeric" min="1" placeholder="г"><button class="btn sm primary" data-act="additem" data-day="${i}" data-meal="${k}">Добавить</button></div></details>
@@ -566,20 +629,20 @@ function renderMenu(){
        <div class="row2"><div class="kc">${r0(dayT[i].kcal)}<small> ккал</small></div><span class="sq">${ICON_GO}</span></div></button>`}).join('')}</div>`;
   // план готовки
   h+=`<div class="card"><div class="sechead"><h2>План готовки</h2></div>`;
-  if(train.length)h+=`<p class="small muted" style="margin:-4px 0 14px">Вечера тренировок (${listDays(train)}) — без готовки. Ужин в эти дни быстрый или из заготовки.</p>`;
+  if(train.length)h+=`<p class="small muted" style="margin:-4px 0 14px">Тренировки: ${listDays(train)}. Ужин после тренировки — быстрый или разогреть готовое.</p>`;
   p.sessions.forEach((s,si)=>{
-    h+=`<div class="cook"><h3>Готовка ${si+1} · ${sessionWhen(s)}</h3><div class="small muted">на ${listDays(s.days)}</div>`;
+    h+=`<div class="cook"><h3>Готовка ${si+1} · ${sessionWhen(s,train)}</h3><div class="small muted">на ${listDays(s.days)}</div>`;
     for(const k of ['l','d']){if(!s[k])continue;const agg={};let n=0;
-      s.days.forEach(di=>{if(k==='d'&&train.includes(di))return;const m=p.days[di].meals[k];if(!m||m.rid!==s[k])return;n++;m.items.forEach(it=>agg[it.p]=(agg[it.p]||0)+it.g)});
+      s.days.forEach(di=>{const m=p.days[di].meals[k];if(!m||m.rid!==s[k])return;n++;m.items.forEach(it=>agg[it.p]=(agg[it.p]||0)+it.g)});
       if(!n)continue;
       h+=`<div class="ln">${RID[s[k]]?.e||''} <b>${k==='l'?'Обед':'Ужин'}:</b> ${esc(RID[s[k]]?.n||'')} — ${n} порц.<div class="ing">${Object.entries(agg).map(([pid,g])=>`${esc(prod(pid).name.toLowerCase())} ${r0(g)} г`).join(', ')}</div></div>`}
     s.days.filter(di=>train.includes(di)).forEach(di=>{const m=p.days[di].meals.d;if(!m)return;const r=RID[m.rid];if(!r||!r.pre)return;
-      h+=`<div class="ln">💡 <b>Заготовка на ужин (${DAY_SHORT[di].toLowerCase()}):</b> ${esc(r.pre)}<div class="ing">${m.items.filter(it=>['chicken','turkey','bulgur'].includes(it.p)).map(it=>`${esc(prod(it.p).name.toLowerCase())} ${it.g} г`).join(', ')}</div></div>`});
+      h+=`<div class="ln">💡 <b>Заготовка на ужин (${DAY_SHORT[di].toLowerCase()}):</b> ${esc(r.pre)}<div class="ing">${m.items.filter(it=>['chicken','turkey','bulgur','rice'].includes(it.p)).map(it=>`${esc(prod(it.p).name.toLowerCase())} ${it.g} г`).join(', ')}</div></div>`});
     const lunchN=s.days.length;
     if(lunchN>=3)h+=`<div class="note">Готовите на ${lunchN} дня: порции на третий день и дальше лучше сразу убрать в морозилку и достать накануне вечером.</div>`;
     h+=`</div>`;
   });
-  const prepB=new Set();p.days.forEach(d=>{if(d.meals.b&&['b6','b9'].includes(d.meals.b.rid))prepB.add(d.meals.b.rid)});
+  const prepB=new Set();if(p.days.some(d=>d.meals.d&&['h_q2'].includes(d.meals.d.rid)||d.meals.l&&d.meals.l.rid==='h_m5'))h+=`<div class="note">🦐 Креветки размораживать в холодильнике накануне, непосредственно перед готовкой.</div>`;p.days.forEach(d=>{if(d.meals.b&&['b6','b9','h_b1','h_b2'].includes(d.meals.b.rid))prepB.add(d.meals.b.rid)});
   if(prepB.size)h+=`<div class="note">🍳 Для завтраков можно заранее: ${[...prepB].map(r=>esc(RID[r].n.toLowerCase())).join('; ')}.</div>`;
   h+=`</div><div class="toolbar"><button class="btn" data-act="print">Печать / PDF</button><button class="btn" data-act="gen">Составить заново</button></div></div>`;
   // ДНИ
@@ -613,24 +676,34 @@ function shoppingData(){const p=state.plan;if(!p)return null;const need={};
   buy.sort(sortF);have.sort(sortF);
   return{buy,have};
 }
+function extraShopCard(){
+  const X=state.shopExtra;
+  return `<div class="card"><div class="sechead" style="margin-bottom:4px"><h2>Свои продукты</h2>${X.length?`<span class="small muted">${X.filter(x=>x.done).length} из ${X.length}</span>`:''}</div>
+   <p class="small muted" style="margin:0 0 8px">Всё, что нужно купить помимо меню: кофе, хлебцы, бытовые мелочи.</p>
+   ${X.map(x=>`<div class="row-i ${x.done?'done':''}"><input type="checkbox" data-ch="xdone" data-id="${esc(x.id)}" ${x.done?'checked':''} aria-label="куплено"><span class="nm">${esc(x.name)}</span><span class="amt">${esc(x.qty||'')}</span><button class="x" data-act="xdel" data-id="${esc(x.id)}" title="Удалить">×</button></div>`).join('')}
+   <div class="addrow" style="margin-top:10px"><input type="text" id="xs_name" placeholder="Продукт" style="flex:2;min-width:140px"><input type="text" id="xs_qty" placeholder="Сколько" style="flex:1;min-width:80px;width:auto"><button class="btn primary" data-act="xadd">Добавить</button></div>
+   ${X.length?`<div style="margin-top:10px"><button class="link" data-act="xclear" style="color:var(--muted)">Удалить купленные</button></div>`:''}</div>`;
+}
 function renderShop(){
   const el=$('#tab-shop'),d=shoppingData();
   let h=`<h1 class="title">Список покупок<br>на неделю 🛒</h1><div class="pad">`;
-  if(!d){el.innerHTML=h+`<div class="card empty"><div class="hero">🛒</div><h2>Пока пусто</h2><p class="muted small">Сначала составьте меню — список соберётся автоматически за вычетом того, что есть дома.</p><button class="btn primary block" data-act="gen">Составить меню</button></div></div>`;return}
+  if(!d){el.innerHTML=h+`<div class="card empty"><div class="hero">🛒</div><h2>Меню ещё нет</h2><p class="muted small">Составьте меню — список соберётся автоматически за вычетом того, что есть дома.</p><button class="btn primary block" data-act="gen">Составить меню</button></div>${extraShopCard()}</div>`;return}
   const by={};d.buy.forEach(x=>(by[prod(x.pid).dept]=by[prod(x.pid).dept]||[]).push(x));
   const done=d.buy.filter(x=>state.bought[x.pid]).length;
   h+=`<div class="toolbar"><button class="btn primary" data-act="copyshop">Скопировать список</button><button class="btn" data-act="print">Печать</button></div>
-  <div class="card"><div class="sechead" style="margin-bottom:0"><h2>Купить</h2><span class="small muted">${done} из ${d.buy.length}</span></div><div class="progress"><div style="width:${d.buy.length?done/d.buy.length*100:0}%"></div></div>`;
+  <div class="card"><div class="sechead" style="margin-bottom:0"><h2>Для меню</h2><span class="small muted">${done} из ${d.buy.length}</span></div><div class="progress"><div style="width:${d.buy.length?done/d.buy.length*100:0}%"></div></div>`;
   DEPTS.forEach((dn,i)=>{if(!by[i])return;h+=`<div class="grp">${dn}</div>${by[i].map(x=>`<label class="row-i ${state.bought[x.pid]?'done':''}"><input type="checkbox" data-ch="bought" data-pid="${esc(x.pid)}" ${state.bought[x.pid]?'checked':''}><span class="nm">${esc(prod(x.pid).name)}${x.note?`<br><span class="small muted">${x.note}</span>`:''}</span><span class="amt">${fmtAmount(x.pid,x.g)}</span></label>`).join('')}`});
   if(!d.buy.length)h+=`<p class="muted">Всё необходимое уже есть дома.</p>`;
   if(done)h+=`<div style="margin-top:12px"><button class="link" data-act="unbuy">Снять все отметки</button></div>`;
-  h+=`</div>`;
+  h+=`</div>`+extraShopCard();
   if(d.have.length)h+=`<div class="card"><h2>Уже есть дома</h2>${d.have.map(x=>`<div class="row-i"><span class="nm">${esc(prod(x.pid).name)}<br><span class="small muted">${x.note}</span></span><span class="amt muted">${r0(x.g)} г</span></div>`).join('')}<div class="note">Если указать граммы во вкладке «Дома», недостающее количество попадёт в список.</div></div>`;
-  h+=`<p class="small muted">Соль, перец и специи (орегано, корица, паприка) в список не включены.</p></div>`;
+  h+=`<p class="small muted">Соль, перец и специи (орегано, паприка, корица) в список не включены.</p></div>`;
   el.innerHTML=h;
 }
-function shopText(){const d=shoppingData();if(!d)return'';const by={};d.buy.forEach(x=>(by[prod(x.pid).dept]=by[prod(x.pid).dept]||[]).push(x));
-  return 'Список покупок'+(state.plan?` (${fmtRange(parseISO(state.plan.weekStart),5)})`:'')+'\n'+DEPTS.map((dn,i)=>by[i]?`\n${dn}:\n`+by[i].map(x=>`— ${prod(x.pid).name}: ${fmtAmount(x.pid,x.g,true)}`).join('\n'):'').join('')}
+function shopText(){const d=shoppingData()||{buy:[]};const by={};d.buy.forEach(x=>(by[prod(x.pid).dept]=by[prod(x.pid).dept]||[]).push(x));
+  const X=state.shopExtra.filter(x=>!x.done);
+  return 'Список покупок'+(state.plan?` (${fmtRange(parseISO(state.plan.weekStart),5)})`:'')+'\n'+DEPTS.map((dn,i)=>by[i]?`\n${dn}:\n`+by[i].filter(x=>!state.bought[x.pid]).map(x=>`— ${prod(x.pid).name}: ${fmtAmount(x.pid,x.g,true)}`).join('\n'):'').join('')
+   +(X.length?`\n\nДополнительно:\n`+X.map(x=>`— ${x.name}${x.qty?': '+x.qty:''}`).join('\n'):'')}
 
 /* ================== ЕСТЬ ДОМА ================== */
 function renderHome(){
@@ -683,7 +756,7 @@ function renderSupps(){
 /* ================== НАСТРОЙКИ ================== */
 function renderSettings(){
   const s=state.settings,T=targets(),el=$('#tab-settings');
-  const maxCook=cookStarts(s.trainDays).length,ses=sessionsFor(s.cookCount,s.trainDays);
+  const maxCook=maxCooks(s.trainDays),ses=sessionsFor(s.cookCount,s.trainDays);
   const pm=(s.protMin+s.protMax)/2;
   let h=`<h1 class="title">Настройки ⚙️</h1><div class="pad">
   <div class="card"><h2>Цели на день</h2><div class="grid2">
@@ -691,11 +764,14 @@ function renderSettings(){
    <div class="note">Белки ${s.protMin}–${s.protMax} г (~${r0(pm*4/s.kcal*100)}%), жиры ~${r0(T.fat)} г (${s.fatPct}%), углеводы ~${r0(T.carb)} г (~${r0(T.carb*4/s.kcal*100)}%). Насыщенных жиров — не более ${r0(s.kcal*s.satPct/100/9)} г в день.</div></div>
   <div class="card"><h2>Тренировки</h2>
    <div class="togs">${[0,1,2,3,4].map(i=>`<label class="tog"><input type="checkbox" data-ch="train" data-d="${i}" ${s.trainDays.includes(i)?'checked':''}>${DAY_SHORT[i]}</label>`).join('')}</div>
-   <p class="small muted" style="margin-bottom:0">Вечером после тренировки готовки нет. Ужин в этот день — быстрый (5–12 минут) или из заготовки, сделанной заранее.</p></div>
+   <p class="small muted" style="margin-bottom:0">Вечером после тренировки обычно не готовлю. Если тренировки два дня подряд, в один из этих вечеров можно доготовить. Ужин после тренировки — быстрый или разогреть готовое; перекус в этот день — до тренировки.</p></div>
   <div class="card"><h2>Готовка</h2>
    <label class="field" style="max-width:240px"><span>Сколько раз в неделю готовлю</span><select data-ch="set" data-k="cookCount">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n==s.cookCount?'selected':''} ${n>maxCook?'disabled':''}>${n}${n>maxCook?' — не получится':''}</option>`).join('')}</select></label>
    ${s.cookCount>maxCook?`<div class="note" style="background:var(--warn-l)">С вашими днями тренировок можно готовить не больше ${maxCook} раз в неделю — меню будет составлено на ${maxCook}.</div>`:''}
-   <div style="margin-top:12px">${ses.map((x,i)=>`<div class="cook" style="margin-bottom:8px"><h3>Готовка ${i+1} · ${sessionWhen({days:x})}</h3><div class="small muted">на ${listDays(x)}</div></div>`).join('')}</div></div>
+   <div style="margin-top:12px">${ses.map((x,i)=>`<div class="cook" style="margin-bottom:8px"><h3>Готовка ${i+1} · ${sessionWhen({days:x},s.trainDays)}</h3><div class="small muted">на ${listDays(x)}</div></div>`).join('')}</div></div>
+  <div class="card"><h2>Рецепты</h2>
+   <p class="small muted" style="margin-top:-6px">Меню собирается из рецептов вашего сборника «Средиземноморское меню» (${H_RECIPES.length} блюд).</p>
+   <label class="tog"><input type="checkbox" data-ch="extra" ${s.extra?'checked':''}>+ ещё ${X_RECIPES.filter(r=>!r.fresh).length} блюд для разнообразия</label></div>
   <div class="card"><h2>Приёмы пищи</h2>
    <div class="togs">${MEALS.map(([k,l])=>`<label class="tog"><input type="checkbox" data-ch="meal" data-k="${k}" ${s.meals[k]?'checked':''}>${l}</label>`).join('')}</div>
    <p class="small muted" style="margin-bottom:0">Изменения настроек применятся, когда вы составите меню заново.</p></div>
@@ -771,6 +847,9 @@ const ACT={
     const m=state.plan.days[+b.dataset.day].meals[b.dataset.meal];const ex=m.items.find(x=>x.p===pid);if(ex)ex.g+=g;else m.items.push({p:pid,g});save();renderMenu();renderShop()},
   copyshop:()=>{const t=shopText();if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>toast('Список скопирован'),()=>fallbackCopy(t));else fallbackCopy(t)},
   unbuy:()=>{state.bought={};save();renderShop()},
+  xadd:()=>{const n=$('#xs_name').value.trim();if(!n){toast('Введите продукт');return}state.shopExtra.push({id:'x'+Date.now().toString(36),name:n,qty:$('#xs_qty').value.trim(),done:false});save();renderShop();setTimeout(()=>{const f=$('#xs_name');if(f)f.focus()},0)},
+  xdel:b=>{state.shopExtra=state.shopExtra.filter(x=>x.id!==b.dataset.id);save();renderShop()},
+  xclear:()=>{state.shopExtra=state.shopExtra.filter(x=>!x.done);save();renderShop()},
   clearhome:()=>{if(!confirm('Снять все отметки «есть дома»?'))return;state.home={};save();renderHome();renderShop()},
   addcustom:()=>{const name=$('#cp_name').value.trim();if(!name){toast('Введите название');return}
     const p={id:'c'+Date.now().toString(36),name,dept:+$('#cp_dept').value,custom:true};for(const k of ['kcal','p','f','c','sat','fib'])p[k]=num($('#cp_'+k).value,0);
@@ -817,14 +896,16 @@ document.addEventListener('change',e=>{
     case 'set':{const k=el.dataset.k;let v=num(el.value,s[k]);if(k==='cookCount')v=clamp(Math.round(v),1,5);if(k==='kcal')v=clamp(v,800,5000);
       s[k]=v;if(s.protMax<s.protMin)s.protMax=s.protMin;save();renderSettings();renderMenu();break}
     case 'train':{const d=+el.dataset.d;s.trainDays=s.trainDays.filter(x=>x!==d);if(el.checked)s.trainDays.push(d);s.trainDays.sort();
-      const mx=cookStarts(s.trainDays).length;if(s.cookCount>mx)toast(`С такими тренировками — максимум ${mx} готовки в неделю`);save();renderSettings();break}
+      const mx=maxCooks(s.trainDays);if(s.cookCount>mx)toast(`С такими тренировками — максимум ${mx} готовки в неделю`);save();renderSettings();break}
     case 'meal':{s.meals[el.dataset.k]=el.checked;save();break}
+    case 'extra':{s.extra=el.checked;save();break}
+    case 'xdone':{const it=state.shopExtra.find(x=>x.id===el.dataset.id);if(it){it.done=el.checked;save();renderShop()}break}
   }
 });
 document.addEventListener('input',e=>{if(e.target.id==='homeSearch'){const q=e.target.value.trim().toLowerCase();
   document.querySelectorAll('.home-row').forEach(r=>r.style.display=!q||r.dataset.name.includes(q)?'':'none');
   document.querySelectorAll('.home-group').forEach(g=>g.style.display=[...g.querySelectorAll('.home-row')].some(r=>r.style.display!=='none')?'':'none')}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='exInput'){e.preventDefault();ACT.addex()}});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='exInput'){e.preventDefault();ACT.addex()}if(e.target.id==='xs_name'||e.target.id==='xs_qty'){e.preventDefault();ACT.xadd()}});
 
 /* ================== СТАРТ ================== */
 buildOptions();
