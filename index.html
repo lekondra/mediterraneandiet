@@ -295,7 +295,7 @@ const RECIPES=[
  {id:'m11',t:'m',e:'🍆',tm:40,n:'Индейка с овощным рагу и бурым рисом',i:{turkey:140,zucchini:100,eggplant:100,pepper:80,onion:30,canTomato:100,oil:10,rice:55},h:'Обжарить индейку, добавить овощи и томаты, тушить 20 мин. Рис отварить.'},
  {id:'m12',t:'m',e:'🍝',tm:45,n:'Тефтели из индейки в томатном соусе с пастой',i:{turkey:140,oats:15,egg:25,canTomato:150,onion:30,oil:6,pasta:60},h:'Фарш из индейки смешать с хлопьями, яйцом и луком, сформовать тефтели, тушить в томатах 20 мин. Подать с пастой.'},
  {id:'m13',t:'m',e:'🥗',tm:25,n:'Тёплый салат из чечевицы с курицей и фетой',i:{lentils:60,chicken:80,feta:25,tomato:100,cucumber:100,pepper:60,herbs:10,oil:10,lemon:10},h:'Чечевицу отварить 12–15 мин, курицу запечь. Смешать с овощами, заправить маслом и лимоном; фету раскрошить сверху.'},
- {id:'m14',t:'m',e:'🍳',tm:25,n:'Шакшука с нутом и цельнозерновым хлебом',i:{egg:110,chickpeas:100,canTomato:200,pepper:80,onion:40,oil:8,bread:40},h:'Потушить лук, перец, томаты и нут 10 мин, сделать углубления, разбить яйца, готовить под крышкой 6–8 мин. Хранить не дольше суток.'},
+ {id:'m14',t:'m',fresh:true,e:'🍳',tm:25,n:'Шакшука с нутом и цельнозерновым хлебом',i:{egg:110,chickpeas:100,canTomato:200,pepper:80,onion:40,oil:8,bread:40},h:'Потушить лук, перец, томаты и нут 10 мин, сделать углубления, разбить яйца, готовить под крышкой 6–8 мин. Хранить не дольше суток.'},
  {id:'m15',t:'m',e:'🍋',tm:35,n:'Курица с лимоном и орегано, гречка, салат из капусты',i:{chicken:150,buckwheat:55,cabbage:120,carrot:40,oil:10,lemon:15},h:'Курицу замариновать в лимоне с орегано, запечь 20–25 мин при 200 °C. Гречку отварить. Капусту с морковью нашинковать, заправить маслом.'},
  {id:'m16',t:'m',e:'🐟',tm:25,n:'Лосось с булгуром и шпинатом',i:{salmon:110,bulgur:55,spinach:100,garlic:5,oil:3,lemon:10},h:'Лосось запечь 15 мин. Шпинат прогреть с чесноком. Булгур отварить, сбрызнуть лимоном.'},
  {id:'m17',t:'m',e:'🍤',tm:20,n:'Креветки с цельнозерновой пастой, томатами и шпинатом',i:{shrimp:150,pasta:65,tomato:120,spinach:60,garlic:5,oil:10},h:'Обжарить чеснок, креветки 2–3 мин, добавить помидоры и шпинат, смешать с отваренной пастой.'},
@@ -419,7 +419,7 @@ function isExcluded(r){
   const names=[r.n.toLowerCase(),...Object.keys(r.i).map(id=>prod(id).name.toLowerCase())];
   return ex.some(w=>names.some(n=>n.includes(w)));
 }
-function pools(){const ok=RECIPES.filter(r=>!isExcluded(r));const by=t=>ok.filter(r=>r.t===t).map(r=>r.id);return{b:by('b'),m:by('m'),q:by('q'),s:by('s')}}
+function pools(){const ok=RECIPES.filter(r=>!isExcluded(r));const by=t=>ok.filter(r=>r.t===t&&!r.fresh).map(r=>r.id);return{b:by('b'),m:by('m'),q:by('q'),s:by('s')}}
 function scoreTotals(t,T,train,dinnerP){
   let sc=Math.abs(t.kcal-T.kcal)/T.kcal*300;
   if(t.p<T.pMin)sc+=(T.pMin-t.p)*2.5;else if(t.p>T.pMax+5)sc+=(t.p-T.pMax-5)*1.2;
@@ -829,6 +829,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='exInp
 /* ================== СТАРТ ================== */
 buildOptions();
 if(checkWeek())save();
+// блюда, которые едят сразу (не для готовки впрок), заменяем в уже составленном меню
+if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>{if(s[k]&&RID[s[k]]&&RID[s[k]].fresh){const di=s.days.find(x=>state.plan.days[x].meals[k]&&state.plan.days[x].meals[k].rid===s[k]);if(di!=null){swapMeal(di,k);ch=true}}}));if(ch)save()}
 let startTab='menu';try{startTab=localStorage.getItem(TAB_KEY)||'menu'}catch(e){}
 setTab(['menu','shop','home','supps','settings'].includes(startTab)?startTab:'menu');
 renderAll();
