@@ -789,7 +789,7 @@ function renderSettings(){
 /* ================== СИНХРОНИЗАЦИЯ ==================
    Два способа: личный код (Firebase, без регистрации для пользователя) или GitHub Gist (с токеном).
    Данные по коду лежат в документе menus/<SHA-256 от кода>: сам код в облако не передаётся. */
-const FIREBASE={projectId:'',apiKey:''};
+const FIREBASE={projectId:'menu-sync-7cd0c',apiKey:'AIzaSyBkzqz0DFmvbz0xC1Orvc4N4QwlReki2JU'};
 function fbReady(){return !!(FIREBASE.projectId&&FIREBASE.apiKey)}
 let sync=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return{}}})();
 if(sync.token&&!sync.mode)sync.mode='gist';
@@ -817,7 +817,7 @@ async function remoteGet(cfg=sync){
   let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();return JSON.parse(txt);
 }
 async function remotePut(cfg=sync){const {url,opt}=remoteReq('PATCH',payload(cfg),cfg);const r=await fetch(url,opt);if(!r.ok)throw httpErr(r)}
-function errText(e){if(sync.mode==='gist'&&e.status===401)return'⚠ неверный токен';if(e.status===403||e.status===401)return'⚠ нет доступа к облаку';if(e.status===404)return'⚠ хранилище не найдено';return'⚠ нет связи с облаком'}
+function errText(e){if(sync.mode==='gist'&&e.status===401)return'⚠ неверный токен';if(e.status===400)return'⚠ ошибка настройки облака';if(e.status===403||e.status===401)return'⚠ нет доступа к облаку';if(e.status===404)return'⚠ хранилище не найдено';return'⚠ нет связи с облаком'}
 async function pull(force){
   if(!syncOn())return;setSync('⟳ загрузка…');
   try{const remote=await remoteGet();
@@ -844,7 +844,7 @@ async function connectCode(code,{create}={}){
       clearTimeout(pushTimer);pushTimer=null;
       sync=cfg;saveSync();state=migrate(remote);activeDay=null;rebuildPMap();buildOptions();persistLocal();if(checkWeek())save();renderAll();setSync('☁ синхронизировано '+hhmm());return true}
     sync=cfg;saveSync();setSync('☁ сохранено '+hhmm());renderSettings();return true;
-  }catch(e){setSync('только на этом устройстве');toast(e.status===403?'Облако отказало в доступе':'Нет связи с облаком, попробуйте позже');return false}
+  }catch(e){setSync('только на этом устройстве');toast(e.status===400?'Ошибка настройки облака (ключ)':e.status===403?'Облако отказало в доступе — проверьте правила Firestore':'Нет связи с облаком, попробуйте позже');return false}
 }
 function syncCardHtml(){
   const share=`<div class="card"><h2>Поделиться страницей</h2><p class="small muted" style="margin-top:-6px">Отправьте ссылку — у другого человека будет своё меню, свои настройки и, если захочет, свой код синхронизации. Ваших данных он не увидит.</p>
