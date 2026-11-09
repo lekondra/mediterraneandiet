@@ -786,47 +786,96 @@ function renderSettings(){
   el.innerHTML=h;
 }
 
-/* ================== СИНХРОНИЗАЦИЯ (GitHub Gist) ================== */
+/* ================== СИНХРОНИЗАЦИЯ ==================
+   Два способа: личный код (Firebase, без регистрации для пользователя) или GitHub Gist (с токеном).
+   Данные по коду лежат в документе menus/<SHA-256 от кода>: сам код в облако не передаётся. */
+const FIREBASE={projectId:'',apiKey:''};
+function fbReady(){return !!(FIREBASE.projectId&&FIREBASE.apiKey)}
 let sync=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return{}}})();
+if(sync.token&&!sync.mode)sync.mode='gist';
 function saveSync(){try{localStorage.setItem(SYNC_KEY,JSON.stringify(sync))}catch(e){}}
 let pushTimer=null,lastSync='';
-function syncOn(){return !!(sync.token&&sync.gistId)}
+function syncOn(){return sync.mode==='code'?!!(sync.docId&&fbReady()):!!(sync.token&&sync.gistId)}
 function setSync(t,err){lastSync=t;const e=$('#syncStatus');e.textContent=t;e.classList.toggle('err',!!err);e.classList.toggle('on',!err&&syncOn())}
-async function gh(method,path,body){
-  const r=await fetch('https://api.github.com'+path,{method,cache:'no-store',headers:Object.assign({'Authorization':'Bearer '+sync.token,'Accept':'application/vnd.github+json'},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
-  if(!r.ok){const e=new Error('GitHub '+r.status);e.status=r.status;throw e}
-  return r.json();
+const CODE_ABC='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function genCode(){const r=crypto.getRandomValues(new Uint8Array(16));let s='';r.forEach((x,i)=>{s+=CODE_ABC[x%32];if(i%4===3&&i<15)s+='-'});return s}
+function normCode(c){const t=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return t.length===16?t.match(/.{4}/g).join('-'):null}
+async function sha256hex(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function codeDocId(code){return sha256hex('menu-sync:'+normCode(code))}
+function fbUrl(id){return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(FIREBASE.projectId)}/databases/(default)/documents/menus/${id}?key=${encodeURIComponent(FIREBASE.apiKey)}`}
+function remoteReq(method,body,cfg=sync){
+  if(cfg.mode==='code')return{url:fbUrl(cfg.docId),opt:{method,headers:body?{'Content-Type':'application/json'}:{},body}};
+  return{url:'https://api.github.com/gists/'+cfg.gistId,opt:{method,headers:Object.assign({'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'},body?{'Content-Type':'application/json'}:{}),body}};
 }
+function payload(cfg=sync){const json=JSON.stringify(state);
+  return cfg.mode==='code'?JSON.stringify({fields:{data:{stringValue:json},updatedAt:{integerValue:String(state.updatedAt||0)}}}):JSON.stringify({files:{[GIST_FILE]:{content:json}}})}
+function httpErr(r){const e=new Error('HTTP '+r.status);e.status=r.status;return e}
+async function remoteGet(cfg=sync){
+  const {url,opt}=remoteReq('GET',undefined,cfg);const r=await fetch(url,Object.assign(opt,{cache:'no-store'}));
+  if(cfg.mode==='code'){if(r.status===404)return null;if(!r.ok)throw httpErr(r);const j=await r.json();const v=j.fields&&j.fields.data&&j.fields.data.stringValue;return v?JSON.parse(v):null}
+  if(!r.ok)throw httpErr(r);const j=await r.json();const f=j.files&&j.files[GIST_FILE];if(!f)return null;
+  let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();return JSON.parse(txt);
+}
+async function remotePut(cfg=sync){const {url,opt}=remoteReq('PATCH',payload(cfg),cfg);const r=await fetch(url,opt);if(!r.ok)throw httpErr(r)}
+function errText(e){if(sync.mode==='gist'&&e.status===401)return'⚠ неверный токен';if(e.status===403||e.status===401)return'⚠ нет доступа к облаку';if(e.status===404)return'⚠ хранилище не найдено';return'⚠ нет связи с облаком'}
 async function pull(force){
   if(!syncOn())return;setSync('⟳ загрузка…');
-  try{const g=await gh('GET','/gists/'+sync.gistId);const f=g.files&&g.files[GIST_FILE];
-    if(f){let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();const remote=JSON.parse(txt);
-      if(remote&&remote.v&&(force||(remote.updatedAt||0)>(state.updatedAt||0))){state=migrate(remote);rebuildPMap();buildOptions();persistLocal();if(checkWeek())save();renderAll()}
-      else if((state.updatedAt||0)>(remote.updatedAt||0))schedulePush(0);}
-    else schedulePush(0);
+  try{const remote=await remoteGet();
+    if(remote&&remote.v&&(force||(remote.updatedAt||0)>(state.updatedAt||0))){state=migrate(remote);activeDay=null;rebuildPMap();buildOptions();persistLocal();if(checkWeek())save();renderAll()}
+    else if(!remote||(state.updatedAt||0)>(remote.updatedAt||0))schedulePush(0);
     setSync('☁ синхронизировано '+hhmm());
-  }catch(e){setSync(e.status===401?'⚠ неверный токен':e.status===404?'⚠ хранилище не найдено':'⚠ нет связи с облаком',true)}
+  }catch(e){setSync(errText(e),true)}
 }
 function schedulePush(delay=1500){if(!syncOn())return;clearTimeout(pushTimer);setSync('⟳ сохраняю…');pushTimer=setTimeout(push,delay)}
-async function push(){pushTimer=null;try{await gh('PATCH','/gists/'+sync.gistId,{files:{[GIST_FILE]:{content:JSON.stringify(state)}}});setSync('☁ сохранено '+hhmm())}
-  catch(e){setSync(e.status===401?'⚠ неверный токен':'⚠ не сохранено в облако',true)}}
-window.addEventListener('pagehide',()=>{if(pushTimer&&syncOn()){clearTimeout(pushTimer);pushTimer=null;try{fetch('https://api.github.com/gists/'+sync.gistId,{method:'PATCH',keepalive:true,headers:{'Authorization':'Bearer '+sync.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(state)}}})})}catch(e){}}});
+async function push(){pushTimer=null;try{await remotePut();setSync('☁ сохранено '+hhmm())}catch(e){setSync(errText(e),true)}}
+window.addEventListener('pagehide',()=>{if(pushTimer&&syncOn()){clearTimeout(pushTimer);pushTimer=null;try{const {url,opt}=remoteReq('PATCH',payload());fetch(url,Object.assign(opt,{keepalive:true}))}catch(e){}}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(checkWeek()){save();renderAll()}if(syncOn()&&!pushTimer)pull()}});
+function pageUrl(){return location.origin+location.pathname}
+function deviceLink(){return pageUrl()+'#sync='+sync.code}
+async function connectCode(code,{create}={}){
+  const c=normCode(code);if(!c){toast('Код должен состоять из 16 букв и цифр');return false}
+  const cfg={mode:'code',code:c,docId:await codeDocId(c)};
+  setSync('⟳ подключаю…');
+  try{
+    if(create){state.updatedAt=state.updatedAt||Date.now();persistLocal();await remotePut(cfg)}
+    else{const remote=await remoteGet(cfg);
+      if(!remote){setSync(syncOn()?lastSync:'только на этом устройстве');toast('Такого кода нет — проверьте, нет ли опечатки');return false}
+      if(!confirm('Загрузить данные по этому коду? Данные на этом устройстве будут заменены.')){setSync(syncOn()?lastSync:'только на этом устройстве');return false}
+      clearTimeout(pushTimer);pushTimer=null;
+      sync=cfg;saveSync();state=migrate(remote);activeDay=null;rebuildPMap();buildOptions();persistLocal();if(checkWeek())save();renderAll();setSync('☁ синхронизировано '+hhmm());return true}
+    sync=cfg;saveSync();setSync('☁ сохранено '+hhmm());renderSettings();return true;
+  }catch(e){setSync('только на этом устройстве');toast(e.status===403?'Облако отказало в доступе':'Нет связи с облаком, попробуйте позже');return false}
+}
 function syncCardHtml(){
-  if(syncOn())return`<div class="card"><h2>Синхронизация ☁</h2><p class="small" style="margin-top:-6px">Включена: изменения сами сохраняются в облако (ваш приватный GitHub Gist) и подтягиваются при открытии страницы на любом устройстве.</p>
+  const share=`<div class="card"><h2>Поделиться страницей</h2><p class="small muted" style="margin-top:-6px">Отправьте ссылку — у другого человека будет своё меню, свои настройки и, если захочет, свой код синхронизации. Ваших данных он не увидит.</p>
+    <code>${esc(pageUrl())}</code><div style="margin-top:10px"><button class="btn sm" data-act="copytxt" data-t="${esc(pageUrl())}">Скопировать ссылку</button></div></div>`;
+  if(syncOn()&&sync.mode==='code')return`<div class="card"><h2>Синхронизация ☁</h2>
+    <p class="small" style="margin-top:-6px">Включена по личному коду. Изменения сами сохраняются в облако и подтягиваются на любом устройстве, где введён этот код.</p>
     <p class="small">Статус: <b>${esc(lastSync)}</b></p>
-    <p class="small">Код хранилища для второго устройства:<br><code>${esc(sync.gistId)}</code> <button class="link" data-act="copygist">скопировать</button></p>
-    <div class="toolbar" style="margin:0"><button class="btn" data-act="syncnow">Синхронизировать</button><button class="btn ghost" data-act="syncoff">Отключить</button></div></div>`;
-  return`<div class="card"><h2>Синхронизация между устройствами</h2>
-   <p class="small" style="margin-top:-6px">Сейчас данные хранятся только в этом браузере. Чтобы пользоваться страницей с телефона и компьютера, подключите облачное хранилище в вашем аккаунте GitHub — один раз на каждом устройстве:</p>
-   <ol class="steps"><li>На GitHub: аватар → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Tokens (classic)</b> → <b>Generate new token (classic)</b>.</li>
-   <li>Название — например, «Меню»; срок — <b>No expiration</b> (или год); отметить <b>только</b> галочку <b>gist</b>. Нажать <b>Generate token</b> и скопировать токен.</li>
-   <li><b>Первое устройство:</b> вставьте токен, поле «Код хранилища» оставьте пустым и нажмите «Подключить» — хранилище создастся с текущими данными.</li>
-   <li><b>Другие устройства:</b> тот же токен + код хранилища (появится здесь после подключения на первом устройстве).</li></ol>
+    <div class="field"><span>Ваш личный код</span><div class="row-i" style="padding:4px 0;border:0"><code id="myCode" style="font-size:1rem;letter-spacing:.06em">${sync.showCode?esc(sync.code):'••••-••••-••••-••••'}</code><button class="link" data-act="togglecode">${sync.showCode?'скрыть':'показать'}</button></div></div>
+    <div class="toolbar" style="margin:8px 0 0"><button class="btn sm" data-act="copytxt" data-t="${esc(sync.code)}">Скопировать код</button><button class="btn sm" data-act="copytxt" data-t="${esc(deviceLink())}">Ссылка для моего устройства</button></div>
+    <div class="note">Код = доступ к вашим данным. Вводите его только на своих устройствах и не пересылайте другим людям — для них есть ссылка на страницу ниже. Если код потерять, данные останутся на устройствах, но новое устройство подключить будет нельзя — сохраните его, например, в заметках.</div>
+    <div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="syncnow">Синхронизировать</button><button class="btn ghost" data-act="syncoff">Отключить</button></div></div>`+share;
+  if(syncOn())return`<div class="card"><h2>Синхронизация ☁</h2><p class="small" style="margin-top:-6px">Включена через GitHub: изменения сохраняются в ваш приватный Gist.</p>
+    <p class="small">Статус: <b>${esc(lastSync)}</b></p>
+    <p class="small">Код хранилища для второго устройства:<br><code>${esc(sync.gistId)}</code> <button class="link" data-act="copytxt" data-t="${esc(sync.gistId)}">скопировать</button></p>
+    ${fbReady()?`<div class="note">Можно перейти на синхронизацию по личному коду — тогда на других устройствах не нужен токен GitHub.<div style="margin-top:8px"><button class="btn sm primary" data-act="tocode">Перейти на личный код</button></div></div>`:''}
+    <div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="syncnow">Синхронизировать</button><button class="btn ghost" data-act="syncoff">Отключить</button></div></div>`+share;
+  const gist=`<ol class="steps"><li>На GitHub: аватар → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Tokens (classic)</b> → <b>Generate new token (classic)</b>.</li>
+   <li>Срок — <b>No expiration</b> (или год); отметить <b>только</b> галочку <b>gist</b>; скопировать токен.</li>
+   <li>Первое устройство: токен, поле «Код хранилища» пустое → «Подключить». Другие устройства: тот же токен + код хранилища.</li></ol>
    <label class="field" style="margin-bottom:12px"><span>Токен GitHub</span><input type="password" id="syncToken" autocomplete="off" placeholder="ghp_…"></label>
    <label class="field"><span>Код хранилища (Gist ID)</span><input type="text" id="syncGist" autocomplete="off" placeholder="пусто — создать новое"></label>
-   <button class="btn primary block" data-act="syncon" style="margin-top:16px">Подключить</button>
-   <div class="note">Токен хранится только в этом браузере и даёт доступ лишь к вашим gist-заметкам, не к репозиториям. Никому его не пересылайте.</div></div>`;
+   <button class="btn primary block" data-act="syncon" style="margin-top:16px">Подключить через GitHub</button>`;
+  if(fbReady())return`<div class="card"><h2>Синхронизация между устройствами</h2>
+   <p class="small" style="margin-top:-6px">Сейчас данные хранятся только в этом браузере. Чтобы пользоваться страницей с телефона и компьютера, создайте личный код — без регистрации.</p>
+   <button class="btn primary block" data-act="newcode">Создать мой код</button>
+   <div class="grp">Уже есть код?</div>
+   <div class="row-i" style="border:0;padding:0"><input type="text" id="codeInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:0;letter-spacing:.05em"><button class="btn" data-act="usecode">Подключить</button></div>
+   <details style="margin-top:14px"><summary>Через GitHub (если он у вас есть)</summary>${gist}</details></div>`+share;
+  return`<div class="card"><h2>Синхронизация между устройствами</h2>
+   <p class="small" style="margin-top:-6px">Сейчас данные хранятся только в этом браузере. Чтобы пользоваться страницей с разных устройств, подключите хранилище в вашем аккаунте GitHub — один раз на каждом устройстве:</p>${gist}
+   <div class="note">Токен хранится только в этом браузере и даёт доступ лишь к вашим gist-заметкам.</div></div>`+share;
 }
 
 /* ================== ОБРАБОТЧИКИ ================== */
@@ -864,19 +913,25 @@ const ACT={
   export:()=>{const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='menu-backup-'+iso(new Date())+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)},
   reset:()=>{if(!confirm('Удалить все данные на этом устройстве? (Облачная копия, если подключена, тоже будет перезаписана.)'))return;state=defaultState();activeDay=null;rebuildPMap();buildOptions();save();renderAll()},
   syncon:async()=>{const token=$('#syncToken').value.trim(),gid=$('#syncGist').value.trim();if(!token){toast('Вставьте токен');return}
-    sync={token,gistId:''};
-    try{if(gid){sync.gistId=gid.replace(/^.*\//,'');saveSync();
-        if(!confirm('Загрузить данные из облака? Данные на этом устройстве будут заменены облачными.')){sync={};saveSync();return}
-        await pull(true);if(!lastSync.startsWith('☁'))throw new Error(lastSync)}
+    const cfg={mode:'gist',token,gistId:''};
+    try{if(gid){cfg.gistId=gid.replace(/^.*\//,'');setSync('⟳ загрузка…');const remote=await remoteGet(cfg);
+        if(!confirm('Загрузить данные из облака? Данные на этом устройстве будут заменены.')){setSync('только на этом устройстве');return}
+        sync=cfg;saveSync();if(remote){state=migrate(remote);activeDay=null;rebuildPMap();buildOptions();persistLocal();if(checkWeek())save()}else save();renderAll();setSync('☁ синхронизировано '+hhmm())}
       else{setSync('⟳ создаю хранилище…');state.updatedAt=state.updatedAt||Date.now();persistLocal();
-        const g=await gh('POST','/gists',{description:'Меню на неделю — данные приложения',public:false,files:{[GIST_FILE]:{content:JSON.stringify(state)}}});
-        sync.gistId=g.id;saveSync();setSync('☁ сохранено '+hhmm())}
+        const r=await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({description:'Меню на неделю — данные приложения',public:false,files:{[GIST_FILE]:{content:JSON.stringify(state)}}})});
+        if(!r.ok)throw httpErr(r);const g=await r.json();cfg.gistId=g.id;sync=cfg;saveSync();setSync('☁ сохранено '+hhmm())}
       renderSettings();toast('Синхронизация включена')}
-    catch(e){sync={};saveSync();setSync('только на этом устройстве');renderSettings();toast(e.status===401?'Неверный токен':'Не удалось подключиться: '+(e.message||''))}},
+    catch(e){setSync(syncOn()?lastSync:'только на этом устройстве');toast(e.status===401?'Неверный токен':'Не удалось подключиться')}},
+  newcode:async()=>{const code=genCode();if(await connectCode(code,{create:true})){sync.showCode=true;saveSync();renderSettings();toast('Код создан — сохраните его')}},
+  usecode:async()=>{const v=$('#codeInput').value;await connectCode(v)&&toast('Синхронизация включена')},
+  tocode:async()=>{if(!confirm('Перейти на личный код? Текущие данные будут перенесены, GitHub на этом устройстве отключится.'))return;
+    const code=genCode();if(await connectCode(code,{create:true})){sync.showCode=true;saveSync();renderSettings();toast('Готово — введите этот код на других устройствах')}},
+  togglecode:()=>{sync.showCode=!sync.showCode;saveSync();renderSettings()},
   syncnow:()=>{if(pushTimer){clearTimeout(pushTimer);push()}else pull()},
   syncoff:()=>{if(!confirm('Отключить синхронизацию на этом устройстве? Данные останутся и здесь, и в облаке.'))return;sync={};saveSync();renderSettings();setSync('только на этом устройстве')},
-  copygist:()=>{const t=sync.gistId;if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>toast('Код скопирован'),()=>fallbackCopy(t));else fallbackCopy(t)},
+  copytxt:b=>copyText(b.dataset.t),
 };
+function copyText(t){if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>toast('Скопировано'),()=>fallbackCopy(t));else fallbackCopy(t)}
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Скопировано')}catch(e){toast('Не удалось скопировать')}ta.remove()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b,e)}});
 
@@ -905,7 +960,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{if(e.target.id==='homeSearch'){const q=e.target.value.trim().toLowerCase();
   document.querySelectorAll('.home-row').forEach(r=>r.style.display=!q||r.dataset.name.includes(q)?'':'none');
   document.querySelectorAll('.home-group').forEach(g=>g.style.display=[...g.querySelectorAll('.home-row')].some(r=>r.style.display!=='none')?'':'none')}});
-document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='exInput'){e.preventDefault();ACT.addex()}if(e.target.id==='xs_name'||e.target.id==='xs_qty'){e.preventDefault();ACT.xadd()}});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='codeInput'){e.preventDefault();ACT.usecode()}if(e.target.id==='exInput'){e.preventDefault();ACT.addex()}if(e.target.id==='xs_name'||e.target.id==='xs_qty'){e.preventDefault();ACT.xadd()}});
 
 /* ================== СТАРТ ================== */
 buildOptions();
@@ -915,7 +970,11 @@ if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>
 let startTab='menu';try{startTab=localStorage.getItem(TAB_KEY)||'menu'}catch(e){}
 setTab(['menu','shop','home','supps','settings'].includes(startTab)?startTab:'menu');
 renderAll();
-if(syncOn())pull();
+(async()=>{const m=location.hash.match(/^#sync=([A-Za-z0-9-]+)/);
+  if(m){history.replaceState(null,'',location.pathname+location.search);
+    if(!fbReady())toast('Синхронизация по коду ещё не настроена');
+    else if(!(syncOn()&&sync.mode==='code'&&sync.code===normCode(m[1]))){setTab('settings');if(await connectCode(m[1]))toast('Синхронизация включена');return}}
+  if(syncOn())pull();})();
 </script>
 </body>
 </html>
