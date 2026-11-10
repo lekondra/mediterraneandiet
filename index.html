@@ -770,7 +770,7 @@ function renderSettings(){
    ${s.cookCount>maxCook?`<div class="note" style="background:var(--warn-l)">С вашими днями тренировок можно готовить не больше ${maxCook} раз в неделю — меню будет составлено на ${maxCook}.</div>`:''}
    <div style="margin-top:12px">${ses.map((x,i)=>`<div class="cook" style="margin-bottom:8px"><h3>Готовка ${i+1} · ${sessionWhen({days:x},s.trainDays)}</h3><div class="small muted">на ${listDays(x)}</div></div>`).join('')}</div></div>
   <div class="card"><h2>Рецепты</h2>
-   <p class="small muted" style="margin-top:-6px">Меню собирается из рецептов вашего сборника «Средиземноморское меню» (${H_RECIPES.length} блюд).</p>
+   <p class="small muted" style="margin-top:-6px">Меню собирается из рецептов сборника «Средиземноморское меню» (${H_RECIPES.length} блюд).</p>
    <label class="tog"><input type="checkbox" data-ch="extra" ${s.extra?'checked':''}>+ ещё ${X_RECIPES.filter(r=>!r.fresh).length} блюд для разнообразия</label></div>
   <div class="card"><h2>Приёмы пищи</h2>
    <div class="togs">${MEALS.map(([k,l])=>`<label class="tog"><input type="checkbox" data-ch="meal" data-k="${k}" ${s.meals[k]?'checked':''}>${l}</label>`).join('')}</div>
@@ -779,7 +779,7 @@ function renderSettings(){
    <div class="togs" style="margin-bottom:12px">${s.excluded.map((w,i)=>`<span class="tag" style="font-size:.82rem;padding:6px 6px 6px 12px">${esc(w)} <button class="x" data-act="delex" data-i="${i}" style="color:var(--pink);padding:0 4px">×</button></span>`).join('')||'<span class="muted small">пусто</span>'}</div>
    <div class="row-i" style="border:0;padding:0"><input type="text" id="exInput" placeholder="например, креветки" style="flex:1;min-width:0"><button class="btn primary" data-act="addex">Добавить</button></div></div>
   ${syncCardHtml()}
-  <div class="card"><h2>Резервная копия</h2><p class="small muted" style="margin-top:-6px">Все данные одним файлом. Токен синхронизации в файл не попадает.</p>
+  <div class="card"><h2>Резервная копия</h2><p class="small muted" style="margin-top:-6px">Все данные одним файлом. Код синхронизации в файл не попадает.</p>
    <div class="toolbar" style="margin:0"><button class="btn" data-act="export">Скачать</button><label class="btn">Загрузить<input type="file" accept=".json,application/json" id="importFile" hidden></label></div>
    <div style="margin-top:14px"><button class="link" data-act="reset" style="color:var(--muted)">Сбросить все данные</button></div></div>
   <p class="small muted" style="text-align:center">КБЖУ ориентировочные. Приложение не заменяет рекомендации врача.</p></div>`;
@@ -847,14 +847,13 @@ async function connectCode(code,{create}={}){
   }catch(e){setSync('только на этом устройстве');toast(e.status===400?'Ошибка настройки облака (ключ)':e.status===403?'Облако отказало в доступе — проверьте правила Firestore':'Нет связи с облаком, попробуйте позже');return false}
 }
 function syncCardHtml(){
-  const share=`<div class="card"><h2>Поделиться страницей</h2><p class="small muted" style="margin-top:-6px">Отправьте ссылку — у другого человека будет своё меню, свои настройки и, если захочет, свой код синхронизации. Ваших данных он не увидит.</p>
-    <code>${esc(pageUrl())}</code><div style="margin-top:10px"><button class="btn sm" data-act="copytxt" data-t="${esc(pageUrl())}">Скопировать ссылку</button></div></div>`;
+  const share='';
   if(syncOn()&&sync.mode==='code')return`<div class="card"><h2>Синхронизация ☁</h2>
     <p class="small" style="margin-top:-6px">Включена по личному коду. Изменения сами сохраняются в облако и подтягиваются на любом устройстве, где введён этот код.</p>
     <p class="small">Статус: <b>${esc(lastSync)}</b></p>
     <div class="field"><span>Ваш личный код</span><div class="row-i" style="padding:4px 0;border:0"><code id="myCode" style="font-size:1rem;letter-spacing:.06em">${sync.showCode?esc(sync.code):'••••-••••-••••-••••'}</code><button class="link" data-act="togglecode">${sync.showCode?'скрыть':'показать'}</button></div></div>
     <div class="toolbar" style="margin:8px 0 0"><button class="btn sm" data-act="copytxt" data-t="${esc(sync.code)}">Скопировать код</button><button class="btn sm" data-act="copytxt" data-t="${esc(deviceLink())}">Ссылка для моего устройства</button></div>
-    <div class="note">Код = доступ к вашим данным. Вводите его только на своих устройствах и не пересылайте другим людям — для них есть ссылка на страницу ниже. Если код потерять, данные останутся на устройствах, но новое устройство подключить будет нельзя — сохраните его, например, в заметках.</div>
+    <div class="note">Код = доступ к вашим данным. Вводите его только на своих устройствах и не пересылайте другим людям — у каждого человека должен быть свой код. Если код потерять, данные останутся на устройствах, но новое устройство подключить будет нельзя — сохраните его, например, в заметках.</div>
     <div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="syncnow">Синхронизировать</button><button class="btn ghost" data-act="syncoff">Отключить</button></div></div>`+share;
   if(syncOn())return`<div class="card"><h2>Синхронизация ☁</h2><p class="small" style="margin-top:-6px">Включена через GitHub: изменения сохраняются в ваш приватный Gist.</p>
     <p class="small">Статус: <b>${esc(lastSync)}</b></p>
@@ -872,7 +871,7 @@ function syncCardHtml(){
    <button class="btn primary block" data-act="newcode">Создать мой код</button>
    <div class="grp">Уже есть код?</div>
    <div class="row-i" style="border:0;padding:0"><input type="text" id="codeInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:0;letter-spacing:.05em"><button class="btn" data-act="usecode">Подключить</button></div>
-   <details style="margin-top:14px"><summary>Через GitHub (если он у вас есть)</summary>${gist}</details></div>`+share;
+</div>`;
   return`<div class="card"><h2>Синхронизация между устройствами</h2>
    <p class="small" style="margin-top:-6px">Сейчас данные хранятся только в этом браузере. Чтобы пользоваться страницей с разных устройств, подключите хранилище в вашем аккаунте GitHub — один раз на каждом устройстве:</p>${gist}
    <div class="note">Токен хранится только в этом браузере и даёт доступ лишь к вашим gist-заметкам.</div></div>`+share;
