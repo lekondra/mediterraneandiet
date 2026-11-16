@@ -20,7 +20,9 @@
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 button,input,select{font-family:inherit}
-.app{max-width:560px;margin:0 auto;min-height:100vh;background:#fff;position:relative;padding-bottom:120px;overflow:hidden}
+.app{max-width:560px;margin:0 auto;min-height:100vh;background:#fff;position:relative;padding-bottom:120px;overflow:hidden;overflow:clip}
+html,body{overflow-x:hidden}
+.chips{position:relative}
 @media (min-width:600px){body{padding:28px 0}.app{border-radius:38px;box-shadow:0 20px 60px rgba(28,28,48,.12);min-height:calc(100vh - 56px)}}
 .deco{position:absolute;border-radius:50%;border:30px solid var(--pink-l);pointer-events:none;z-index:0}
 .deco.a{width:190px;height:190px;top:-110px;right:-80px}
@@ -656,6 +658,9 @@ function renderMenu(){
   el.innerHTML=h;
 }
 
+function centerChip(smooth){const c=$('#tab-menu .chips'),a=c&&c.querySelector('.chip.active');if(!a)return;
+  c.scrollTo({left:Math.max(0,a.offsetLeft-(c.clientWidth-a.offsetWidth)/2),behavior:smooth?'smooth':'auto'})}
+
 /* ================== ПОКУПКИ ================== */
 function fmtAmount(pid,g,plain){const p=prod(pid);
   const gg=g>=50?Math.ceil(g/10)*10:Math.ceil(g/5)*5;
@@ -886,7 +891,7 @@ document.getElementById('bnav').addEventListener('click',e=>{const b=e.target.cl
 const ACT={
   tab:b=>{setTab(b.dataset.tab);window.scrollTo(0,0)},
   day:b=>{activeDay=b.dataset.d==='w'?'w':+b.dataset.d;renderMenu();const c=$('#tab-menu .chips');if(c&&c.getBoundingClientRect().top<0)window.scrollTo({top:c.offsetTop-10,behavior:'smooth'});
-    const a=$('#tab-menu .chip.active');if(a)a.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})},
+    centerChip(true)},
   gen:()=>{if(state.plan&&!confirm('Составить меню заново? Текущее меню и ручные правки будут заменены.'))return;if(generatePlan()){activeDay=null;save();renderAll();setTab('menu');window.scrollTo(0,0);toast('Меню составлено ✨')}},
   print:()=>window.print(),
   swap:b=>{swapMeal(+b.dataset.day,b.dataset.meal);save();renderMenu();renderShop()},
@@ -964,6 +969,8 @@ document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id
 /* ================== СТАРТ ================== */
 buildOptions();
 if(checkWeek())save();
+window.addEventListener('scroll',()=>{if(window.scrollX)window.scrollTo(0,window.scrollY)});
+const _app=document.querySelector('.app');_app.addEventListener('scroll',()=>{if(_app.scrollLeft)_app.scrollLeft=0});
 // блюда, которые едят сразу (не для готовки впрок), заменяем в уже составленном меню
 if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>{if(s[k]&&RID[s[k]]&&RID[s[k]].fresh){const di=s.days.find(x=>state.plan.days[x].meals[k]&&state.plan.days[x].meals[k].rid===s[k]);if(di!=null){swapMeal(di,k);ch=true}}}));if(ch)save()}
 let startTab='menu';try{startTab=localStorage.getItem(TAB_KEY)||'menu'}catch(e){}
