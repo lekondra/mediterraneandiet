@@ -281,6 +281,25 @@ const P0=[
  ['chia','Семена чиа',7,486,17,31,8,3.3,34],
  ['honey','Мёд',7,304,0.3,0,82,0,0],
  ['choco','Тёмный шоколад 70%',7,600,8,43,34,25,11],
+ ['eggWhite','Яичный белок',4,48,10.9,0.2,0.7,0,0],
+ ['kiwi','Киви',1,61,1.1,0.5,14.7,0,3],
+ ['crisp','Хлебцы цельнозерновые',6,330,10,2.5,60,0.4,15],
+ ['pomegranate','Гранат',1,72,1.5,1.2,14.7,0.1,4],
+ ['pistachio','Фисташки',7,562,20,45,18,5.6,10],
+ ['oatFlour','Овсяная мука',5,370,13,6.8,64,1.2,6],
+ ['sesame','Кунжут',7,573,17.7,49.7,11.7,7,11.8],
+ ['dorado','Дорада',2,100,18,3,0,0.8,0],
+ ['couscous','Кускус (сухой)',5,360,12.8,0.6,72,0.1,5],
+ ['turkeyMince','Фарш индейки',3,140,19,7,0,2,0],
+ ['mandarin','Мандарины',1,53,0.8,0.3,12,0,1.8],
+ ['fig','Инжир свежий',1,74,0.8,0.3,16,0.1,2.9],
+ ['pumpkinSeeds','Тыквенные семечки',7,559,30,49,5,8.7,6],
+ ['beef','Говядина постная',3,140,21,6,0,2.5,0],
+ ['redBeans','Фасоль красная варёная',8,120,8,0.5,17,0.1,6,{can:240}],
+ ['cashew','Кешью',7,553,18,44,30,7.8,3],
+ ['dates','Финики',1,282,2.5,0.4,75,0,8],
+ ['lavash','Лаваш тонкий',6,275,9,1.2,56,0.3,2],
+ ['rucola','Руккола',0,25,2.6,0.7,2,0.1,1.6],
 ];
 const BASE_PRODUCTS=P0.map(a=>({id:a[0],name:a[1],dept:a[2],kcal:a[3],p:a[4],f:a[5],c:a[6],sat:a[7],fib:a[8],...(a[9]||{})}));
 
@@ -299,7 +318,7 @@ const H_RECIPES=[
  {id:'h_m1',t:'m',e:'🍗',tm:40,n:'Курица с булгуром и овощами',i:{chicken:150,bulgur:60,veg:200,oil:10},h:'Булгур отварить. Курицу нарезать, приправить паприкой и орегано, обжарить или запечь до готовности. Овощи запечь или быстро обжарить. Масло распределить между порциями.'},
  {id:'h_m2',t:'m',e:'🥗',tm:15,n:'Греческий салат с нутом и фетой',i:{chickpeas:120,feta:50,veg:250,oil:10,lemon:10},h:'Овощи нарезать, добавить нут и раскрошенную фету. Заправить маслом, лимонным соком и орегано непосредственно перед едой — заправку хранить отдельно.'},
  {id:'h_m3',t:'m',e:'🐟',tm:40,n:'Лосось с картофелем и брокколи',i:{salmon:150,potato:200,broccoli:200,oil:10,lemon:10},h:'Картофель нарезать и запечь до мягкости. Добавить брокколи и лосось, сбрызнуть маслом, приправить и довести до готовности. Подать с лимоном.'},
- {id:'h_m4',t:'m',e:'🥗',tm:10,n:'Салат с тунцом и белой фасолью',i:{tuna:100,beans:120,veg:250,bread:40,oil:10,lemon:10},h:'Смешать тунец, промытую фасоль и нарезанные овощи. Заправить маслом и лимоном перед едой. Хлеб подать отдельно.'},
+ {id:'h_m4',t:'m',e:'🥗',tm:10,n:'Салат с тунцом и белой фасолью',i:{tuna:80,beans:160,tomato:120,cucumber:100,onion:30,oil:11,lemon:10,bread:45},h:'Смешать тунец, промытую фасоль и нарезанные овощи. Заправить маслом и лимоном перед едой. Хлеб подать отдельно.'},
  {id:'h_m5',t:'m',e:'🍝',tm:25,n:'Пенне с креветками и томатами',i:{pasta:75,shrimp:250,passata:110,spinach:50,garlic:5,oil:5,parmesan:10},h:'Отварить пасту до al dente. Прогреть масло с чесноком, добавить пассату и шпинат, креветки довести до готовности в соусе, не передерживая. Смешать с пастой, посыпать пармезаном. Хранить не дольше 1–2 дней.'},
  {id:'h_m6',t:'m',e:'🍖',tm:25,n:'Индейка с булгуром и овощами',i:{stewTurkey:150,bulgur:60,veg:200,oil:7},h:'Булгур отварить. Овощи запечь или потушить. Индейку прогреть с овощами, паприкой и перцем. Если индейка уже жирная или солёная — масла меньше.'},
  {id:'h_m7',t:'m',e:'🫘',tm:15,n:'Фасолевое рагу с томатами и фетой',i:{beansTomato:200,veg:200,feta:40,bread:60},h:'Овощи нарезать и потушить с небольшим количеством воды. Добавить фасоль с соусом, прогреть 5–7 мин. Сверху фета, хлеб отдельно.'},
@@ -314,6 +333,47 @@ const H_RECIPES=[
  {id:'h_s5',t:'s',e:'🍐',tm:1,n:'Груша и тёмный шоколад',i:{pear:150,choco:20},h:''},
  {id:'h_s6',t:'s',e:'🏋️',tm:1,n:'Банан и греческий йогурт',i:{banana:100,yogurt:150},pw:true,h:'За 60–90 минут до тренировки.'},
  {id:'h_s7',t:'s',e:'🍊',tm:1,n:'Апельсин, йогурт и орехи',i:{orange:150,yogurt:100,walnuts:10},h:''},
+
+ // ——— Сборник «Средиземноморское меню на 10 дней» ———
+ {id:'h2_b1',t:'b',e:'🍳',tm:10,n:'Омлет со шпинатом и фетой, тост',i:{egg:55,eggWhite:20,spinach:80,feta:30,oil:5,tomato:100,bread:65},h:'Взбейте яйцо с белком, вылейте на сковороду с маслом и шпинатом, посыпьте фетой. Подавайте с помидором и тостом.'},
+ {id:'h2_b2',t:'b',e:'🥝',tm:5,n:'Греческий йогурт с киви, грецким орехом и чиа',i:{yogurt:220,kiwi:120,walnuts:10,chia:6,honey:5,crisp:30},h:'Йогурт с чиа, киви кубиками, орех и мёд; хлебцы отдельно.'},
+ {id:'h2_b3',t:'b',e:'🥞',tm:30,n:'Запечённые сырники с ягодами',i:{cottage:85,egg:55,oatFlour:35,berries:120,honey:10,walnuts:10},h:'Творог, яйцо и овсяную муку смешать, сформовать, запечь 20 мин при 180°. Подавать с ягодами, мёдом и орехом. Можно напечь на 2–3 дня.'},
+ {id:'h2_b4',t:'b',e:'🥑',tm:10,n:'Тост с авокадо и яйцом пашот',i:{bread:75,avocado:55,egg:55,tomato:100,cottage:35,sesame:5},h:'Авокадо размять на тост, сверху яйцо пашот и кунжут; помидор и творог рядом.'},
+ {id:'h2_b5',t:'b',e:'🍳',tm:20,n:'Фритата с цукини и фетой',i:{egg:110,zucchini:150,feta:30,oil:4,bread:50,tomato:100},h:'Кабачок обжарить, залить взбитыми яйцами, добавить фету, довести под крышкой или в духовке. Хорошо хранится.'},
+ {id:'h2_b6',t:'b',e:'🥣',tm:5,n:'Овсянка с творогом, бананом и миндалём',i:{oats:55,cottage:50,banana:100,almonds:10,kefir:50},h:'Овсянку заварить кипятком или кефиром, добавить творог, банан и миндаль.'},
+ {id:'h2_b7',t:'b',e:'🫐',tm:5,n:'Творог с инжиром и орехами по-гречески',i:{cottage:100,fig:120,almonds:15,honey:8,bread:55},h:'Творог с нарезанным инжиром, миндалём и мёдом; хлеб.'},
+ {id:'h2_b8',t:'b',e:'🧁',tm:25,n:'Яичные маффины с брокколи и пармезаном',i:{egg:110,broccoli:120,parmesan:15,oil:4,bread:55,tomato:100,apple:120},h:'Яйца с мелкой брокколи и пармезаном разлить по формам, 15–18 мин при 180°. Хорошо хранятся; с хлебом и помидором.'},
+ {id:'h2_b9',t:'b',e:'🐟',tm:5,n:'Тост с творогом, лососем и огурцом',i:{bread:60,cottage:65,salmon:30,cucumber:100,tomato:100,walnuts:10,apple:120},h:'Творог на хлеб, сверху слабосолёный лосось и огурец; яблоко.'},
+ {id:'h2_b10',t:'b',e:'🍐',tm:5,n:'Йогурт-боул с грушей, финиками и семенами',i:{yogurt:85,pear:120,dates:20,pumpkinSeeds:15,walnuts:15,crisp:25,honey:5},h:'Йогурт, груша, финики, семечки, орех; хлебцы.'},
+ {id:'h2_m1',t:'m',e:'🍋',tm:35,n:'Курица с лимоном и травами, булгур, овощи гриль',i:{chicken:110,bulgur:85,zucchini:150,pepper:100,oil:11},h:'Курицу с лимоном, орегано и частью масла запечь 20 мин при 200°. Булгур отварить, кабачок и перец обжарить или запечь.'},
+ {id:'h2_m2',t:'m',e:'🐟',tm:30,n:'Запечённый лосось, киноа, брокколи',i:{salmon:100,quinoa:85,broccoli:200,oil:3,lemon:20},h:'Лосось с лимоном запечь 12–15 мин при 200°, киноа отварить, брокколи на пару или в духовке с маслом.'},
+ {id:'h2_m3',t:'m',e:'🍆',tm:40,n:'Рагу из индейки с баклажаном и томатами, бурый рис',i:{turkey:110,eggplant:200,canTomato:150,onion:50,rice:75,oil:12},h:'Индейку, баклажан и лук потушить в томатах с маслом 25 мин; рис отварить отдельно. Хорошо хранится.'},
+ {id:'h2_m4',t:'m',e:'🍝',tm:20,n:'Цельнозерновая паста с тунцом, томатами и шпинатом',i:{pasta:95,tuna:80,canTomato:150,spinach:100,garlic:5,oil:7,parmesan:10},h:'Пасту отварить, томаты с чесноком потушить 5 мин, добавить тунец и шпинат, смешать, посыпать пармезаном.'},
+ {id:'h2_m5',t:'m',e:'🐠',tm:40,n:'Дорада, запечённая с картофелем и помидорами',i:{dorado:130,potato:260,tomato:150,onion:40,oil:9,lemon:20},h:'Картофель дольками запечь 15 мин, добавить дораду, помидоры и лук ещё на 15–20 мин при 200°.'},
+ {id:'h2_m6',t:'m',e:'🍝',tm:35,n:'Тефтели из индейки в томатном соусе, кускус',i:{turkeyMince:110,couscous:90,canTomato:200,onion:40,garlic:4,oil:7,parmesan:10},h:'Фарш с чесноком и пармезаном — тефтели, запечь 15 мин, потушить в томатах с луком 10 мин. Кускус залить кипятком.'},
+ {id:'h2_m7',t:'m',e:'🍄',tm:25,n:'Индейка с шампиньонами и шпинатом, булгур',i:{turkey:110,mushrooms:200,spinach:100,bulgur:70,oil:7,garlic:4},h:'Индейку и грибы обжарить с чесноком, в конце добавить шпинат; булгур отварить.'},
+ {id:'h2_m8',t:'m',e:'🐟',tm:40,n:'Запечённая треска с картофелем и томатами',i:{cod:150,potato:280,tomato:150,pepper:80,oil:13,lemon:20},h:'Картофель и перец запечь 20 мин, добавить треску и помидоры на 15 мин при 200°.'},
+ {id:'h2_m9',t:'m',e:'🍆',tm:60,n:'Мусака-лайт с индейкой',i:{turkeyMince:110,eggplant:250,canTomato:150,onion:40,potato:120,yogurt:50,parmesan:15,oil:10},h:'Слои запечённого баклажана, картофеля и фарша в томатах; сверху йогурт с пармезаном, 25 мин при 190°. Хорошо хранится.'},
+ {id:'h2_m10',t:'m',e:'🥩',tm:60,n:'Тушёная говядина с красной фасолью и перцем, рис',i:{beef:100,redBeans:120,pepper:150,canTomato:100,onion:40,rice:45,oil:8},h:'Говядину кусочками потушить 40 мин с луком и томатами, добавить перец и фасоль на 10 мин; рис отдельно.'},
+ {id:'h2_m11',t:'m',e:'🍗',tm:50,n:'Курица в йогуртовом маринаде, цветная капуста, картофель',i:{chicken:110,yogurt:25,cauli:250,potato:160,oil:10,lemon:20,garlic:4},h:'Курицу на 30 мин в йогурте с чесноком и лимоном, запечь 20 мин с картофелем и цветной капустой при 200°.'},
+ {id:'h2_m12',t:'m',e:'🫑',tm:60,n:'Фаршированный перец с индейкой и рисом',i:{pepper:300,turkeyMince:110,rice:50,canTomato:120,onion:40,oil:8,feta:20},h:'Фарш смешать с рисом и луком, нафаршировать перцы, 40 мин в томатах при 180°, фета сверху. Хорошо хранится.'},
+ {id:'h2_m13',t:'m',e:'🐟',tm:30,n:'Хек в фольге с овощами, кускус',i:{hake:150,couscous:50,zucchini:150,tomato:150,pepper:80,oil:10,lemon:20},h:'Хек с кабачком, помидором, перцем и лимоном в фольге 20 мин при 200°; кускус залить кипятком.'},
+ {id:'h2_m14',t:'m',e:'🍗',tm:40,n:'Курица по-гречески, картофель, тзатзики',i:{chicken:110,potato:220,yogurt:35,cucumber:80,tomato:100,oil:12,garlic:4},h:'Курицу с орегано и лимоном запечь с картофелем 30 мин; тзатзики: йогурт, огурец, чеснок.'},
+ {id:'h2_q1',t:'q',e:'🥗',tm:10,n:'Куриная грудка гриль и греческий салат',i:{chicken:110,tomato:150,cucumber:150,pepper:60,feta:35,oil:4,bread:55},pre:'запечь курицу',h:'Курица запечённая заранее; салат из помидора, огурца, перца и феты с маслом; хлеб.'},
+ {id:'h2_q2',t:'q',e:'🥗',tm:10,n:'Салат с нутом, курицей и фетой',i:{chicken:110,chickpeas:120,cucumber:150,tomato:150,feta:30,oil:7,onion:30},pre:'запечь курицу',h:'Курицу запечь заранее, смешать с нутом, овощами и фетой, заправить маслом.'},
+ {id:'h2_q3',t:'q',e:'🍐',tm:10,n:'Шпинатный салат с курицей, грушей и грецким орехом',i:{chicken:110,spinach:100,rucola:40,pear:120,feta:25,walnuts:5,oil:5,bread:45},pre:'запечь курицу',h:'Шпинат и руккола, ломтики груши, курица (запечённая заранее), фета и орех; заправка — масло с лимоном.'},
+ {id:'h2_q4',t:'q',e:'🌯',tm:10,n:'Ролл в лаваше с индейкой и овощами',i:{lavash:60,turkey:110,yogurt:25,cucumber:100,tomato:120,salad:40,oil:10,chickpeas:50},pre:'запечь индейку',h:'Запечённую индейку, овощи, нут и йогурт-соус завернуть в лаваш.'},
+ {id:'h2_q5',t:'q',e:'🍤',tm:12,n:'Креветки с чесноком и цукини, кускус',i:{shrimp:130,zucchini:200,couscous:65,garlic:5,oil:12,lemon:20},h:'Креветки и кабачок обжарить с чесноком и маслом 5–7 мин, залить кипятком кускус (5 мин), лимон.'},
+ {id:'h2_s1',t:'s',e:'🍐',tm:2,n:'Творог с грушей и грецким орехом',i:{cottage:50,pear:150,walnuts:10},h:''},
+ {id:'h2_s2',t:'s',e:'🍏',tm:1,n:'Яблоко, кефир, миндаль',i:{apple:180,kefir:280,almonds:10},h:''},
+ {id:'h2_s3',t:'s',e:'🍎',tm:2,n:'Йогурт с гранатом и фисташками',i:{yogurt:85,pomegranate:80,pistachio:20},h:''},
+ {id:'h2_s4',t:'s',e:'🥚',tm:5,n:'Хлебцы с яйцом и огурцом, йогурт',i:{crisp:30,egg:55,cucumber:100,yogurt:55,walnuts:10},h:'Варёное яйцо, огурец на хлебцах; йогурт с орехом.'},
+ {id:'h2_s5',t:'s',e:'🍊',tm:1,n:'Мандарины, грецкий орех, кефир',i:{kefir:120,mandarin:150,walnuts:10,honey:5},h:''},
+ {id:'h2_s6',t:'s',e:'🥕',tm:5,n:'Цацики с морковью и фисташками',i:{yogurt:75,cucumber:100,carrot:150,pistachio:10,crisp:25},h:'Йогурт с тёртым огурцом и чесноком — цацики; морковные палочки, хлебцы, фисташки.'},
+ {id:'h2_s7',t:'s',e:'🍌',tm:3,n:'Кефир с бананом и семенами тыквы',i:{kefir:140,banana:100,pumpkinSeeds:15,crisp:25},pw:true,h:'Взбейте кефир с бананом, семечки сверху; хлебцы.'},
+ {id:'h2_s8',t:'s',e:'🫐',tm:1,n:'Йогурт с ягодами и кешью',i:{yogurt:65,berries:100,cashew:15,crisp:15},h:''},
+ {id:'h2_s9',t:'s',e:'🍏',tm:1,n:'Яблоко, творог и миндаль',i:{cottage:65,apple:150,almonds:15,crisp:15},h:''},
+ {id:'h2_s10',t:'s',e:'🐟',tm:3,n:'Хлебцы с тунцом и огурцом, яблоко',i:{crisp:25,tuna:60,cucumber:100,apple:150,cashew:15},h:'Тунец с огурцом на хлебцах; яблоко и кешью.'},
 ];
 const X_RECIPES=[
  {id:'b1',t:'b',e:'🥣',tm:10,n:'Овсянка на молоке с ягодами и грецкими орехами',i:{oats:50,milk:200,berries:100,walnuts:10,flax:5},h:'Сварить овсянку на молоке 5–7 мин, добавить ягоды, орехи и молотый лён.'},
@@ -477,6 +537,7 @@ function isExcluded(r){
 function pools(){const ok=RECIPES.filter(r=>!isExcluded(r)&&!r.fresh&&(!r.x||state.settings.extra));
   const by=t=>ok.filter(r=>r.t===t).map(r=>r.id);
   return{b:by('b'),m:by('m'),q:by('q'),s:by('s'),pw:ok.filter(r=>r.t==='s'&&r.pw).map(r=>r.id)}}
+function isSalad(id){const r=RID[id];return !!r&&(r.salad||/салат/i.test(r.n))}
 function snackPool(P,isT){return isT&&P.pw.length?P.pw:P.s}
 function scoreTotals(t,T,train,dinnerP){
   let sc=Math.abs(t.kcal-T.kcal)/T.kcal*300;
@@ -504,8 +565,9 @@ function scoreCand(c,sessions,T,train){
   return sc;
 }
 function randCand(P,sessions,en,train){
-  const mains=shuffle(P.m.slice());let mi=0;const next=()=>mains[(mi++)%mains.length];
-  const sess=sessions.map(()=>({l:en.l?next():null,d:en.d?next():null}));
+  const used=new Set();
+  const take=ok=>{let c=P.m.filter(r=>ok(r)&&!used.has(r));if(!c.length)c=P.m.filter(ok);if(!c.length)c=P.m;const r=pick(c);used.add(r);return r};
+  const sess=sessions.map(()=>({l:en.l?take(r=>!isSalad(r)):null,d:en.d?take(()=>true):null}));
   const days=[];let lastQ=null;
   for(let i=0;i<5;i++){const pv=days[i-1]||{},isT=train.includes(i);let q=null;
     if(en.d&&isT&&P.q.length&&Math.random()<0.6){q=pickNot(P.q,lastQ);lastQ=q}
@@ -558,7 +620,8 @@ function swapMeal(i,k){
   }else{
     const days=ses.days.filter(di=>p.days[di].meals[k]&&p.days[di].meals[k].rid===ses[k]);
     const used=new Set();p.sessions.forEach(s=>{s.l&&used.add(s.l);s.d&&used.add(s.d)});
-    let cands=P.m.filter(r=>!used.has(r));if(!cands.length)cands=P.m.filter(r=>r!==ses[k]);if(!cands.length){toast('Нет других вариантов');return}
+    const okK=r=>k!=='l'||!isSalad(r);
+    let cands=P.m.filter(r=>!used.has(r)&&okK(r));if(!cands.length)cands=P.m.filter(r=>r!==ses[k]&&okK(r));if(!cands.length){toast('Нет других вариантов');return}
     const scored=cands.map(r=>({r,sc:days.reduce((a,di)=>a+scoreWith(p.days[di],di,r).sc,0)})).sort((a,b)=>a.sc-b.sc);
     const ch=pick(scored.slice(0,3));ses[k]=ch.r;
     for(const di of days){const {f}=scoreWith(p.days[di],di,ch.r);p.days[di].meals[k]={rid:ch.r,items:scaleItems(RID[ch.r].i,f)}}
@@ -639,12 +702,12 @@ function renderMenu(){
       if(!n)continue;
       h+=`<div class="ln">${RID[s[k]]?.e||''} <b>${k==='l'?'Обед':'Ужин'}:</b> ${esc(RID[s[k]]?.n||'')} — ${n} порц.<div class="ing">${Object.entries(agg).map(([pid,g])=>`${esc(prod(pid).name.toLowerCase())} ${r0(g)} г`).join(', ')}</div></div>`}
     s.days.filter(di=>train.includes(di)).forEach(di=>{const m=p.days[di].meals.d;if(!m)return;const r=RID[m.rid];if(!r||!r.pre)return;
-      h+=`<div class="ln">💡 <b>Заготовка на ужин (${DAY_SHORT[di].toLowerCase()}):</b> ${esc(r.pre)}<div class="ing">${m.items.filter(it=>['chicken','turkey','bulgur','rice'].includes(it.p)).map(it=>`${esc(prod(it.p).name.toLowerCase())} ${it.g} г`).join(', ')}</div></div>`});
+      h+=`<div class="ln">💡 <b>Заготовка на ужин (${DAY_SHORT[di].toLowerCase()}):</b> ${esc(r.pre)}<div class="ing">${m.items.filter(it=>['chicken','turkey','bulgur','rice','couscous'].includes(it.p)).map(it=>`${esc(prod(it.p).name.toLowerCase())} ${it.g} г`).join(', ')}</div></div>`});
     const lunchN=s.days.length;
     if(lunchN>=3)h+=`<div class="note">Готовите на ${lunchN} дня: порции на третий день и дальше лучше сразу убрать в морозилку и достать накануне вечером.</div>`;
     h+=`</div>`;
   });
-  const prepB=new Set();if(p.days.some(d=>d.meals.d&&['h_q2'].includes(d.meals.d.rid)||d.meals.l&&d.meals.l.rid==='h_m5'))h+=`<div class="note">🦐 Креветки размораживать в холодильнике накануне, непосредственно перед готовкой.</div>`;p.days.forEach(d=>{if(d.meals.b&&['b6','b9','h_b1','h_b2'].includes(d.meals.b.rid))prepB.add(d.meals.b.rid)});
+  const prepB=new Set();if(p.days.some(d=>d.meals.d&&['h_q2'].includes(d.meals.d.rid)||d.meals.l&&d.meals.l.rid==='h_m5'))h+=`<div class="note">🦐 Креветки размораживать в холодильнике накануне, непосредственно перед готовкой.</div>`;p.days.forEach(d=>{if(d.meals.b&&['b6','b9','h_b1','h_b2','h2_b3','h2_b5','h2_b8'].includes(d.meals.b.rid))prepB.add(d.meals.b.rid)});
   if(prepB.size)h+=`<div class="note">🍳 Для завтраков можно заранее: ${[...prepB].map(r=>esc(RID[r].n.toLowerCase())).join('; ')}.</div>`;
   h+=`</div><div class="toolbar"><button class="btn" data-act="print">Печать / PDF</button><button class="btn" data-act="gen">Составить заново</button></div></div>`;
   // ДНИ
@@ -972,7 +1035,7 @@ if(checkWeek())save();
 window.addEventListener('scroll',()=>{if(window.scrollX)window.scrollTo(0,window.scrollY)});
 const _app=document.querySelector('.app');_app.addEventListener('scroll',()=>{if(_app.scrollLeft)_app.scrollLeft=0});
 // блюда, которые едят сразу (не для готовки впрок), заменяем в уже составленном меню
-if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>{if(s[k]&&RID[s[k]]&&RID[s[k]].fresh){const di=s.days.find(x=>state.plan.days[x].meals[k]&&state.plan.days[x].meals[k].rid===s[k]);if(di!=null){swapMeal(di,k);ch=true}}}));if(ch)save()}
+if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>{if(s[k]&&RID[s[k]]&&(RID[s[k]].fresh||(k==='l'&&isSalad(s[k])))){const di=s.days.find(x=>state.plan.days[x].meals[k]&&state.plan.days[x].meals[k].rid===s[k]);if(di!=null){swapMeal(di,k);ch=true}}}));if(ch)save()}
 let startTab='menu';try{startTab=localStorage.getItem(TAB_KEY)||'menu'}catch(e){}
 setTab(['menu','shop','home','supps','settings'].includes(startTab)?startTab:'menu');
 renderAll();
