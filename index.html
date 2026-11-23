@@ -482,7 +482,14 @@ function migrate(s){
 }
 function loadState(){try{const s=JSON.parse(localStorage.getItem(LS_KEY));if(s&&s.v)return migrate(s)}catch(e){}return defaultState()}
 let state=loadState();
-function persistLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('Не удалось сохранить в браузере')}}
+function persistLocal(){publishAura();try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('Не удалось сохранить в браузере')}}
+/* Связь с трекером AURA (lekondra.github.io/aura): отдаём КБЖУ запланированных дней через общее хранилище браузера */
+function publishAura(){try{
+  const s=state.settings,out={updatedAt:Date.now(),targets:{kcal:s.kcal,protMin:s.protMin,protMax:s.protMax},days:{}};
+  const p=state.plan;
+  if(p&&p.days&&p.weekStart){const ws=parseISO(p.weekStart);
+    p.days.forEach((d,i)=>{const t=dayTotals(d);out.days[iso(addDays(ws,i))]={kcal:Math.round(t.kcal),p:Math.round(t.p),f:Math.round(t.f),c:Math.round(t.c)}})}
+  localStorage.setItem('aura_menu_plan',JSON.stringify(out))}catch(e){}}
 function save(){state.updatedAt=Date.now();persistLocal();schedulePush()}
 
 function allProducts(){return BASE_PRODUCTS.concat(state.custom)}
@@ -1039,6 +1046,7 @@ if(state.plan){let ch=false;state.plan.sessions.forEach(s=>['l','d'].forEach(k=>
 let startTab='menu';try{startTab=localStorage.getItem(TAB_KEY)||'menu'}catch(e){}
 setTab(['menu','shop','home','supps','settings'].includes(startTab)?startTab:'menu');
 renderAll();
+publishAura();
 (async()=>{const m=location.hash.match(/^#sync=([A-Za-z0-9-]+)/);
   if(m){history.replaceState(null,'',location.pathname+location.search);
     if(!fbReady())toast('Синхронизация по коду ещё не настроена');
